@@ -4,11 +4,20 @@
 \alias{omopify_xml}
 \title{Create an OMOP database from ICNARC XML}
 \usage{
-omopify_xml(xml_path, vocab_path, nhs_trust, source_description,
-  cdm_version = "6.0.0", vocabulary_version = "5",
-  database_name = NULL, database_engine = "postgres",
-  host_name = "localhost", port_no = 5432, username = NULL,
-  password = NULL, sqlite_file = NULL)
+omopify_xml(
+  xml_path,
+  vocab_path,
+  nhs_trust,
+  source_description,
+  cdm_version = "6.0.0",
+  vocabulary_version = "5",
+  database_name = NULL,
+  database_engine = "postgres",
+  host_name = "localhost",
+  port_no = 5432,
+  username = NULL,
+  sqlite_file = NULL
+)
 }
 \arguments{
 \item{xml_path}{the path to a folder with ICNARC style XML.}
@@ -17,11 +26,13 @@ omopify_xml(xml_path, vocab_path, nhs_trust, source_description,
 
 \item{nhs_trust}{a character string with the full name of the trust.}
 
-\item{source_description}{path of a comprehensive note about the origin and provenance of the ICNARC XML
-for example, what systems in the hospital are used to compile the XML, or is it created by hand.
-Should point to a plain text file.}
+\item{source_description}{path of a comprehensive note about the origin and
+provenance of the ICNARC XML for example, what systems in the hospital
+are used to compile the XML, or is it created by hand. Should point to a
+plain text file.}
 
-\item{cdm_version}{the version of the CDM you are using}
+\item{cdm_version}{the version of the CDM you are using. Can only be
+"6.0.0" at present}
 
 \item{vocabulary_version}{the version of the vocabulary you are using}
 
@@ -35,16 +46,19 @@ Should point to a plain text file.}
 
 \item{username}{username to database (must have write privaleges)}
 
-\item{password}{database password}
-
 \item{sqlite_file}{a filename if using sqlite}
+
+\item{password}{database password}
 }
 \value{
 TRUE if completed without errors
 }
 \description{
-This function instantionates an OMOP CDM 6 (OHDSI) database from raw ICNARC XML. In doing so, it creates
-an extremely spartan instance of OMOP. This behaviour is intentional to short cut the creation of OMOP.
-After the OMOP database has been created, you have the option to add more data directly from more ICNARC
-XML in the future, or begin to populate the database directly with data from another source.
+This function instantionates an OHDSI CDM 6 (referred to throughout as OMOP
+for brevity) database from raw ICNARC XML. In doing so, it creates an
+extremely spartan instance of OMOP. This behaviour is intentional to short
+cut the creation of an OMOP database. After the OMOP database has been
+created, you have the option to add more data directly from more ICNARC XML
+in the future, or begin to populate the database directly with data from
+another source.
 }

@@ -10,5 +10,5 @@ verify_nhs(nhs_numbers = NULL)
 \item{nhs_numbers}{a character string of NHS numbers}
 }
 \description{
-Verify NHS Numbers
+Verify if a character string conforms to the NHS number checksum pattern.
 }

@@ -1,5 +1,7 @@
 #' Extract data from ICNARC xml
 #'
+#' Extracts data from a version 3 ICNARC xml and converts it into a useful
+#' rectangular format. Version 4 is pending.
 #'
 #' @param xml_path the path to a folder with ICNARC style XML. This folder
 #'   should contain NOTHING but XML. The XML should be labelled in
@@ -127,7 +129,9 @@ extract_xml <- function(xml_path) {
 #' @return a vector of the datatype specified in lookup
 #' @export
 transform_data_type <- function(input_data, input_name, lookup) {
+
   conversion_function <-
     lookup[lookup$icnarc == input_name, 2, drop = TRUE][[1]]
+
   conversion_function(input_data)
 }

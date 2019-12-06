@@ -1,5 +1,7 @@
 #' Verify NHS Numbers
 #'
+#' Verify if a character string conforms to the NHS number checksum pattern.
+#'
 #' @param nhs_numbers a character string of NHS numbers
 #'
 #' @export
@@ -41,6 +43,10 @@ verify_nhs <- function (nhs_numbers = NULL) {
 }
 
 #' Verify Post Code
+#'
+#' Verifies that the character string provided is a valid UK postcode. This
+#' means that it conforms to the correct specification for a UK postcode, not
+#' that it actually exists.
 #'
 #' @param post_code a character vector of post codes
 #'

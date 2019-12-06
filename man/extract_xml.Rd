@@ -17,5 +17,6 @@ dates in the names parse files in the correct order.}
 a data frame with ICNARC data
 }
 \description{
-Extract data from ICNARC xml
+Extracts data from a version 3 ICNARC xml and converts it into a useful
+rectangular format. Version 4 is pending.
 }

@@ -10,5 +10,7 @@ verify_post_code(post_code = NULL)
 \item{post_code}{a character vector of post codes}
 }
 \description{
-Verify Post Code
+Verifies that the character string provided is a valid UK postcode. This
+means that it conforms to the correct specification for a UK postcode, not
+that it actually exists.
 }
