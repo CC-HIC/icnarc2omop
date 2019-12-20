@@ -30,11 +30,9 @@
 #' @importFrom rlang inform
 #' @importFrom DBI dbConnect
 #' @importFrom RPostgres Postgres
-#' @importFrom RMariaDB MariaDB
 #' @importFrom RMySQL MySQL
 #' @importFrom odbc odbc
 #' @importFrom RSQLite SQLite
-#' @importFrom rstudioapi askForPassword
 #'
 #' @return TRUE if completed without errors
 #' @export
@@ -86,7 +84,7 @@ omopify_xml <- function(xml_path,
       host = host_name,
       port = port_no,
       user = username,
-      password = rstudioapi::askForPassword("Please enter your password"),
+      password = askForPassword("Please enter your password"),
       dbname = database_name
       )
   } else {
