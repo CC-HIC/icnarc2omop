@@ -8,8 +8,10 @@
 #' in the future, or begin to populate the database directly with data from
 #' another source.
 #'
-#' @param xml_path the path to a folder with ICNARC style XML.
-#' @param vocab_path the path to a folder with OMOP style Vocabularies.
+#' @param project_path the path to a project folder with:
+#'  - vocab
+#'  - meta
+#'  - xml
 #' @param nhs_trust a character string with the full name of the trust.
 #' @param source_description path of a comprehensive note about the origin and
 #'   provenance of the ICNARC XML for example, what systems in the hospital
@@ -36,8 +38,7 @@
 #'
 #' @return TRUE if completed without errors
 #' @export
-omopify_xml <- function(xml_path,
-                        vocab_path,
+omopify_xml <- function(project_path,
                         nhs_trust,
                         source_description,
                         cdm_version = "6.0.0",
@@ -49,22 +50,30 @@ omopify_xml <- function(xml_path,
                         username = NULL,
                         sqlite_file = NULL) {
 
-  stopifnot(
-    all(!is.null(database_name), !is.null(username), !is.null(password)) ||
-      !is.null(sqlite_file)
-    )
-
+  # Check db engine
+  database_engine <- tolower(database_engine)
   db_options <- c(
     "sqlite",
     "postgres",
-    #"mariadb",
-    "mysql",
-    "odbc"
+    "mysql"
     )
 
-  stopifnot(
-    any(database_engine %in% db_options)
-  )
+  if (all(!(database_engine %in% db_options))) {
+    rlang::abort(
+      glue::glue("{database_engine} is not a valid choice. Please select from:\n
+                 {db_options}")
+    )
+  }
+
+  # Check project folder structure
+
+  project_dirs <- list.dirs(project_path, full.names = FALSE)
+  if (!all(c("meta", "xml", "vocab") %in% project_dirs)) {
+    print(project_dirs %in% c("meta", "xml", "vocab"))
+    rlang::abort("Your folder structure is not correct")
+  }
+
+  dir.create(file.path(project_path, "ddl"))
 
   rlang::inform("Attempting to connect to database")
 
@@ -72,11 +81,9 @@ omopify_xml <- function(xml_path,
 
     db_engine <- database_engine %>%
       switch(
-        sqlite <- NULL,
-        postgres <- RPostgres::Postgres,
-        #mariadb <- RMariaDB::MariaDB,
-        mysql <- RMySQL::MySQL,
-        odbc <- odbc::odbc
+        sqlite = NULL,
+        postgres = RPostgres::Postgres,
+        mysql = RMySQL::MySQL
       )
 
     ctn <- DBI::dbConnect(
@@ -84,7 +91,7 @@ omopify_xml <- function(xml_path,
       host = host_name,
       port = port_no,
       user = username,
-      password = askForPassword("Please enter your password"),
+      password = rstudioapi::askForPassword("Please enter your password"),
       dbname = database_name
       )
   } else {
@@ -93,7 +100,36 @@ omopify_xml <- function(xml_path,
 
   rlang::inform("Connection established")
 
-  rlang::inform("Reading in Database tables")
+  ## Check exiting table structure
+  tbls <- DBI::dbListTables(ctn)
+
+  if (length(tbls) != 0) {
+    rlang::abort("You should be connecting to an empty database. Try again.")
+  }
+
+  ddl_path <- database_engine %>%
+    switch(
+      sqlite = NULL,
+      postgres = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/PostgreSQL/OMOP%20CDM%20postgresql%20ddl.txt",
+      mysql = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/Sql%20Server/OMOP%20CDM%20sql%20server%20ddl.txt"
+    )
+
+  download.file(
+    ddl_path,
+    destfile = file.path(project_path, "ddl/ddl.txt"))
+
+  qrys <- readr::read_file(file.path(project_path, "ddl/ddl.txt")) %>%
+    str_extract_all("(?s)(?<=CREATE TABLE).*?(?=;)") %>%
+    magrittr::extract2(1) %>%
+    paste0("CREATE TABLE", ., ";")
+
+  qry_result <- purrr::map_lgl(.x = qrys, .f = ~ transact(ctn, .x))
+
+  if (all(qry_result)) {
+    rlang::inform("Empty tables have been written successfully")
+  } else {
+    rlang::abort("Problem writing out tables to database")
+  }
 
   table_names <- sort(DBI::dbListTables(ctn))
 
@@ -102,24 +138,20 @@ omopify_xml <- function(xml_path,
     .f = ~ dplyr::collect(dplyr::tbl(ctn, .x))) %>%
     set_names(table_names)
 
-  rlang::inform("Database tables read in successfully")
-
   rlang::inform("Reading and converting XML")
-  # Convert XML to the correct form
-  df <- extract_xml(xml_path)
 
-  rlang::inform("XML convertion went really rather well")
+  # Convert XML to the correct form
+  df <- extract_xml(file.path(project_path, "xml"))
+  rlang::inform("ICNARC XML parsed successfully")
 
   # Set up tables according to the CDM 6 Schema
   # Capture tables in list
   rlang::inform("Starting CDM build")
 
-  # VOCABULARIES
+  # VOCABULARIES ====
 
   rlang::inform("Reading in vocabularies")
-
   my_vocab <- extract_vocab(vocab_path)
-
   iwalk(my_vocab, ~ copy_to(
     ctn, .x, name = .y, overwrite = TRUE, temporary = FALSE)
   )
@@ -190,23 +222,53 @@ omopify_xml <- function(xml_path,
   # Copy tables to the database
   iwalk(my_cdm, ~ DBI::dbAppendTable(ctn, name = .y, value = .x))
 
+  # ACTIVATE INDEXES ====
+  ddl_path <- database_engine %>%
+    switch(
+      sqlite = NULL,
+      postgres = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/PostgreSQL/OMOP%20CDM%20postgresql%20pk%20indexes.txt",
+      mysql = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/Sql%20Server/OMOP%20CDM%20sql%20server%20pk%20indexes.txt"
+    )
 
+  download.file(
+    ddl_path,
+    destfile = file.path(project_path, "ddl/index.txt"))
 
-  # Activate indexes
-  db_options <- c(
-    "sqlite",
-    "postgres",
-    #"mariadb",
-    "mysql",
-    "odbc"
-  )
+  qrys <- readr::read_lines(file.path(project_path, "ddl/index.txt")) %>%
+    str_subset(";") %>%
+    magrittr::extract(2:length(.))
 
-  stopifnot(
-    any(database_engine %in% db_options)
-  )
+  qry_result <- purrr::map_lgl(.x = qrys, .f = ~ transact(ctn, .x))
 
+  if (all(qry_result)) {
+    rlang::inform("Table indexes have been successfully created")
+  } else {
+    rlang::abort("Problem writing table indexes")
+  }
 
-  # Activate constaints
+  # ACTIVATE CONSTRAINTS ====
+  ddl_path <- database_engine %>%
+    switch(
+      sqlite = NULL,
+      postgres = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/PostgreSQL/OMOP%20CDM%20postgresql%20constraints.txt",
+      mysql = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/Sql%20Server/OMOP%20CDM%20sql%20server%20constraints.txt"
+    )
+
+  download.file(
+    ddl_path,
+    destfile = file.path(project_path, "ddl/constraints.txt"))
+
+  qrys <- readr::read_lines(file.path(project_path, "ddl/constraints.txt")) %>%
+    str_subset(";") %>%
+    magrittr::extract(2:length(.))
+
+  qry_result <- purrr::map_lgl(.x = qrys, .f = ~ transact(ctn, .x))
+
+  if (all(qry_result)) {
+    rlang::inform("Tables constraints have been written successfully")
+  } else {
+    rlang::abort("Problem writing table constaints")
+  }
 
   return(TRUE)
 

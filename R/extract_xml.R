@@ -4,12 +4,12 @@
 #' rectangular format. Version 4 is pending.
 #'
 #' @param xml_path the path to a folder with ICNARC style XML. This folder
-#'   should contain NOTHING but XML. The XML should be labelled in
+#'   should contain *NOTHING* but XML. The XML should be labelled in
 #'   lexicographical order (i.e. the order you want the files to be read in).
 #'   For example, my_xml01.xml, my_xml02.xml and so on. Please do not rely on
-#'   dates in the names parse files in the correct order.
+#'   dates in the names of files for them to parse in the correct order.
 #'
-#' @return a data frame with ICNARC data
+#' @return a data frame representation of ICNARC data
 #' @export
 #'
 #' @importFrom xml2 read_xml xml_find_all xml_name xml_children xml_length
@@ -28,7 +28,7 @@ extract_xml <- function(xml_path) {
   # Identify Files
   xmls <- list.files(xml_path)
   xmls <- xmls[grepl("\\.xml$", xmls)]
-  xmls <- paste0(xml_path, xmls)
+  xmls <- file.path(xml_path, xmls)
 
   # Read in as XML
   admissions <- map(xmls, ~ read_xml(.x)) %>%

@@ -3,7 +3,6 @@
 export(extract_vocab)
 export(extract_xml)
 export(omopify_xml)
-export(say_hello)
 export(transform_data_type)
 export(verify_nhs)
 export(verify_post_code)

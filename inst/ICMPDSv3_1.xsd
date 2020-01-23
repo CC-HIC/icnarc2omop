@@ -1,0 +1,950 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns="http://tempuri.org/ICMPDSv3_1.xsd" xmlns:mstns="http://tempuri.org/ICMPDSv3_1.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://tempuri.org/ICMPDSv3_1.xsd" elementFormDefault="qualified">
+	<xs:annotation>
+		<xs:documentation>
+      ****************** XML Schema for ICNARC ICMPDS V3.1 **********************************
+
+      Author: P. Selmer
+      Date: 2006-02-07
+      Copyright: ICNARC 2006
+      Version: 3.1
+
+      History:
+      2006-02-07: Schema created - version 3.0 dataset
+      2006-03-14: Amendments: ICM pattern has been tightened;various fields added/removed
+      2006-08-15: Amendments: NHSNO pattern corrected from "[a-zA-Z0-9]{3}[0-9]{7}" to "[0-9]{10}|[a-zA-Z]{3}[0-9]{7}"
+      2006-09-08: Amendments: ICM pattern corrected: all refs to "." altered to "\."
+      2006-09-11: Amendments: New "D" option needed for EDEP. List changed accordingly.
+      2006-09-22: Amendments: "E" option removed from MOUAIB
+      2006-11-22: Amendments: Removed fields DTH and TTH
+      Added option T to OD_V3
+      Deleted options: N and A removed from PA_V3; O removed from RDIS_V3
+      2006-11-07: Amendments: Lowest and highest bounds implemented for numeric fields.
+      I have endeavoured to assign meaningful names to the groups of fields having the same lower and upper bounds.
+      2007-04-03: Amendments: Implemented a minimum value for DOB - 1 January 1880
+      2008-02-12: Amendments: Removed AAAXXXXXXX pattern from allowable NHSNO format
+      2008-08-11: Amendments: Implemented a minimum value for ALL dates - other than DOB - 1 January 2000
+
+      2009-02-27: VERSION 3.1 IMPLEMENTATION:
+      a) Amended field: MOUAIB: new option 'V' added
+      b) Deleted fields: HTFC, OSMAX
+      c) New fields:
+      1) ANCHWBC - Decimal (0.0 - 999.9)
+      2) ANCLWBC - Decimal (0.0 - 999.9
+      3) ANCPWBC - Decimal (0.0 - 999.9)
+      4) BSA - Integer (0 - 100)
+      5) DHRS - Integer	(0 - 99)
+      6) HCM - Integer (40 - 250)
+      7) HCMEST -	Boolean
+      8) HG - Decimal (0.1 - 160)
+      9) INHAL - Boolean
+      10) LG - Decimal (0.1 - 160)
+      11) LPR	- R,U,N
+      12) MG	- Boolean
+      13) MPR	- Boolean
+      14) NASSESS	- A,N
+      15) PG - Decimal (0.1 - 160)
+      16) RPR	- R,U,N
+      17) SCODE - Integer (100 - 999)
+      18) TNESSA	- T,D
+      19) VRE	- A,U,N,S
+      20) WKG	- Integer	(1 - 600)
+      21) WKGEST - Boolean
+      d) DAICU is no longer nullable... a value must always be provided
+
+      2009-11-09: Amendments: SCODE now has an upper bound of 840 rather than 999
+
+      2011-03-08: Amendments: ICNNO is no longer nullable... a value must always be provided
+
+      2011-03-31: Date minimum bound amendments:
+      DOB - 1 Jan 1900
+      DOAH, DAH, DLCCA, DOAICU - 1 Jan 2003  (Creation of new type: PreICUDATEvalue)
+      DADEL - 20 Nov 2008 (Creation of new type: DADELvalue)
+      All other dates - 1 Jan 2009
+
+      2015-01-06: icm regular expression updated for 2015 ICNARC Coding Method (ICM) update
+      Date minimum bound amendments:
+      DOAH, DAH, DLCCA, DOAICU - 1 Jan 2006  (Creation of new type: PreICUDATEvalue)
+      DADEL - 20 Nov 2011 (Creation of new type: DADELvalue)
+      All other dates - 1 Jan 2012
+      
+      *************************************************************************************
+    </xs:documentation>
+	</xs:annotation>
+	<xs:complexType name="ADMISSION">
+		<xs:all>
+			<xs:element name="ACON" type="ACONList" nillable="true" />
+			<xs:element name="ACSD" type="CCMDSvalue" nillable="true" />
+			<xs:element name="ADNO" type="adno"/>
+			<xs:element name="AIDS_V3" type="AIDSV3List" nillable="true" />
+			<xs:element name="AMLALLMM" type="bool" nillable="true" />
+			<xs:element name="AMUAI" type="bool" nillable="true" />
+		  	<xs:element name="ANCHWBC" type="ANCXvalue" nillable="true" />
+			<xs:element name="ANCLWBC" type="ANCXvalue" nillable="true" />
+		  	<xs:element name="ANCPWBC" type="ANCXvalue" nillable="true" />
+		  	<xs:element name="ARSD" type="CCMDSvalue" nillable="true" />
+			<xs:element name="ASSOD" type="ASSODList" nillable="true" />
+			<xs:element name="BCSD" type="CCMDSvalue" nillable="true" />
+			<xs:element name="BPC" type="bool" nillable="true" />
+			<xs:element name="BRSD" type="CCMDSvalue" nillable="true" />
+      			<xs:element name="BSA" type="BSAvalue" nillable="true" />
+      			<xs:element name="BSDTP" type="bool" nillable="true" />
+			<xs:element name="CCA" type="criticalCareList" nillable="true" />
+			<xs:element name="CCD" type="criticalCareList" nillable="true" />
+			<xs:element name="CCL0D" type="CCMDSvalue" nillable="true" />
+			<xs:element name="CCL1D" type="CCMDSvalue" nillable="true" />
+			<xs:element name="CCL2D" type="CCMDSvalue" nillable="true" />
+			<xs:element name="CCL3D" type="CCMDSvalue" nillable="true" />
+			<xs:element name="CDIFF" type="infectionList" nillable="true" />
+			<xs:element name="CHEMOX" type="bool" nillable="true" />
+			<xs:element name="CICIDS" type="bool" nillable="true" />
+			<xs:element name="CLASSNS" type="CLASSNSList" nillable="true" />
+			<xs:element name="CMLCLL" type="bool" nillable="true" />
+			<xs:element name="CPR_V3" type="CPRV3List" nillable="true" />
+			<xs:element name="CRPREG" type="CRPREGList" nillable="true" />
+			<xs:element name="CRRX" type="bool" nillable="true" />
+			<xs:element name="DADEL" type="DADELvalue" nillable="true" />
+			<xs:element name="DAH" type="PreICUDATEvalue" nillable="true" />
+			<xs:element name="DAICU" type="DATEvalue" />
+			<xs:element name="DBRICU" type="DATEvalue" nillable="true" />
+			<xs:element name="DDBSD" type="DATEvalue" nillable="true" />
+			<xs:element name="DDH" type="DATEvalue" nillable="true" />
+			<xs:element name="DDICU" type="DATEvalue" nillable="true" />
+			<xs:element name="DEDEL" type="DATEvalue" nillable="true" />
+			<xs:element name="DEP" type="DEPList" nillable="true" />
+			<xs:element name="DESTH_V3" type="DESTHV3List" nillable="true" />
+			<xs:element name="DFCCD" type="DATEvalue" nillable="true" />
+			<xs:element name="DHRS" type="DHRSvalue" nillable="true" />
+			<xs:element name="DIS" type="lifeStatusList" nillable="true" />
+			<xs:element name="DLCCA" type="PreICUDATEvalue" nillable="true" />
+			<xs:element name="DOAH" type="PreICUDATEvalue" nillable="true" />
+			<xs:element name="DOAICU" type="PreICUDATEvalue" nillable="true" />
+			<xs:element name="DOB" type="DOBvalue" nillable="true" />
+			<xs:element name="DOBEST" type="bool" nillable="true" />
+			<xs:element name="DOD" type="DATEvalue" nillable="true" />
+			<xs:element name="DSD" type="CCMDSvalue" nillable="true" />
+			<xs:element name="DTW" type="DATEvalue" nillable="true" />
+			<xs:element name="DUDH" type="DATEvalue" nillable="true" />
+			<xs:element name="DUDICU" type="DATEvalue" nillable="true" />
+			<xs:element name="DWFRD" type="DATEvalue" nillable="true" />
+			<xs:element name="EDEP" type="EDEPList" nillable="true" />
+			<xs:element name="EPHYS" type="bool" nillable="true" />
+			<xs:element name="EPMH" type="bool" nillable="true" />
+			<xs:element name="ETHNIC" type="ETHNICList" nillable="true" />
+			<xs:element name="EYEL" type="EYELvalue" nillable="true" />
+			<xs:element name="FILPO" type="FILPOvalue" nillable="true" />
+			<xs:element name="GESTC" type="GESTXvalue" nillable="true" />
+			<xs:element name="GESTR" type="GESTXvalue" nillable="true" />
+			<xs:element name="GSD" type="CCMDSvalue" nillable="true" />
+			<xs:element name="HBL" type="XBLvalue" nillable="true" />
+      			<xs:element name="HCM" type="HCMvalue" nillable="true" />
+			<xs:element name="HCMEST" type="bool" nillable="true" />
+			<xs:element name="HCREAT" type="XCREATvalue" nillable="true" />
+			<xs:element name="HCTEMP" type="XCTEMPvalue" nillable="true" />
+			<xs:element name="HDIS" type="lifeStatusList" nillable="true" />
+			<xs:element name="HE" type="bool" nillable="true" />
+      			<xs:element name="HG" type="XGvalue" nillable="true" />
+      			<xs:element name="HHB" type="XHBvalue" nillable="true" />
+			<xs:element name="HHCO" type="XHCOvalue" nillable="true" />
+			<xs:element name="HHR" type="XHRvalue" nillable="true" />
+			<xs:element name="HK" type="XKvalue" nillable="true" />
+			<xs:element name="HLOCA" type="hospitalHousingList" nillable="true" />
+			<xs:element name="HLOCD" type="hospitalHousingList" nillable="true" />
+			<xs:element name="HNA" type="XNAvalue" nillable="true" />
+			<xs:element name="HNCTEMP" type="XCTEMPvalue" nillable="true" />
+			<xs:element name="HNVRR" type="XNVRRvalue" nillable="true" />
+			<xs:element name="HSYS" type="XSYSvalue" nillable="true" />
+			<xs:element name="HTLOCA" type="hospitalHousingList" nillable="true" />
+			<xs:element name="HU" type="XUvalue" nillable="true" />
+			<xs:element name="HV" type="bool" nillable="true" />
+			<xs:element name="HVRR" type="XVRRvalue" nillable="true" />
+			<xs:element name="HWBC" type="XWBCvalue" nillable="true" />
+			<xs:element name="HYST" type="bool" nillable="true" />
+			<xs:element name="ICNNO" type="cmpNumber" />
+			<xs:element name="ILPO" type="ILPOvalue" nillable="true" />
+			<xs:element name="INHAL" type="bool" nillable="true" />
+			<xs:element name="INTILPO" type="bool" nillable="true" />
+			<xs:element name="INTL" type="bool" nillable="true" />
+			<xs:element name="ITW_V3" type="ITWV3List" nillable="true" />
+			<xs:element name="LCREAT" type="XCREATvalue" nillable="true" />
+			<xs:element name="LCTEMP" type="XCTEMPvalue" nillable="true" />
+			<xs:element name="LEVA" type="LEVXvalue" nillable="true" />
+			<xs:element name="LEVD" type="LEVXvalue" nillable="true" />
+      			<xs:element name="LG" type="XGvalue" nillable="true" />
+			<xs:element name="LHB" type="XHBvalue" nillable="true" />
+			<xs:element name="LHCO" type="XHCOvalue" nillable="true" />
+			<xs:element name="LHR" type="XHRvalue" nillable="true" />
+			<xs:element name="LK" type="XKvalue" nillable="true" />
+			<xs:element name="LNA" type="XNAvalue" nillable="true" />
+			<xs:element name="LNCTEMP" type="XCTEMPvalue" nillable="true" />
+			<xs:element name="LNVRR" type="XNVRRvalue" nillable="true" />
+			<xs:element name="LOCA" type="LOCAList" nillable="true" />
+			<xs:element name="LOCD" type="LOCDList" nillable="true" />
+			<xs:element name="LPC" type="XPCvalue" nillable="true" />
+			<xs:element name="LPH_V3" type="BLOODGASvalue" nillable="true" />
+			<xs:element name="LPR" type="PRList" nillable="true" />
+			<xs:element name="LSD" type="CCMDSvalue" nillable="true" />
+			<xs:element name="LSYS" type="XSYSvalue" nillable="true" />
+			<xs:element name="LTOT" type="LTOTvalue" nillable="true" />
+			<xs:element name="LVRR" type="XVRRvalue" nillable="true" />
+			<xs:element name="LWBC" type="XWBCvalue" nillable="true" />
+			<xs:element name="LYM" type="bool" nillable="true" />
+			<xs:element name="MABG" type="bool" nillable="true" />
+			<xs:element name="MBL" type="bool" nillable="true" />
+			<xs:element name="MCREAT" type="bool" nillable="true" />
+			<xs:element name="META" type="bool" nillable="true" />
+			<xs:element name="MG" type="bool" nillable="true" />
+			<xs:element name="MHB" type="bool" nillable="true" />
+			<xs:element name="MHCO" type="bool" nillable="true" />
+			<xs:element name="MK" type="bool" nillable="true" />
+			<xs:element name="MNA" type="bool" nillable="true" />
+			<xs:element name="MOLAR" type="bool" nillable="true" />
+			<xs:element name="MOTL" type="MOTLvalue" nillable="true" />
+			<xs:element name="MOUAIB" type="MOUAIBList" nillable="true" />
+			<xs:element name="MPC" type="bool" nillable="true" />
+			<xs:element name="MPR" type="bool" nillable="true" />
+			<xs:element name="MRSA" type="infectionList" nillable="true" />
+			<xs:element name="MU" type="bool" nillable="true" />
+			<xs:element name="MUP" type="bool" nillable="true" />
+			<xs:element name="MWBC" type="bool" nillable="true" />
+			<xs:element name="NASSESS" type="NASSESSList" nillable="true" />
+			<xs:element name="NHSNO" type="nhsNumber" nillable="true" />
+			<xs:element name="NICUB" type="NUMBER0TO9value" nillable="true" />
+			<xs:element name="NLB" type="NUMBER0TO9value" nillable="true" />
+			<xs:element name="NPCS" type="NPCSvalue" nillable="true" />
+			<xs:element name="NPLSB" type="NPLSBvalue" nillable="true" />
+			<xs:element name="NSB" type="NUMBER0TO9value" nillable="true" />
+			<xs:element name="NSD" type="CCMDSvalue" nillable="true" />
+			<xs:element name="NUAIB" type="NUMBER0TO9value" nillable="true" />
+			<xs:element name="OCPMH" type="icm" nillable="true" />
+			<xs:element name="OD_V3" type="ODV3List" nillable="true" />
+			<xs:element name="OUTRP" type="OUTRPList" nillable="true" />
+			<xs:element name="PA_V3" type="PAV3List" nillable="true" />
+			<xs:element name="PBL" type="XBLvalue" nillable="true" />
+			<xs:element name="PCILPO" type="ASSOCIATEDPACO2value" nillable="true" />
+			<xs:element name="PCLPH_V3" type="ASSOCIATEDPACO2value" nillable="true" />
+			<xs:element name="PCODE" type="postcode" nillable="true" />
+			<xs:element name="PCREAT" type="XCREATvalue" nillable="true" />
+			<xs:element name="PDIAH" type="PDIAXvalue" nillable="true" />
+			<xs:element name="PDIAL" type="PDIAXvalue" nillable="true" />
+      			<xs:element name="PG" type="XGvalue" nillable="true" />
+			<xs:element name="PH" type="bool" nillable="true" />
+			<xs:element name="PHB" type="XHBvalue" nillable="true" />
+			<xs:element name="PHCO" type="XHCOvalue" nillable="true" />
+			<xs:element name="PHILPO" type="BLOODGASvalue" nillable="true" />
+			<xs:element name="PK" type="XKvalue" nillable="true" />
+			<xs:element name="PLOCA" type="PLOCAList" nillable="true" />
+			<xs:element name="PMHP" type="bool" nillable="true" />
+			<xs:element name="PNA" type="XNAvalue" nillable="true" />
+			<xs:element name="PPC" type="XPCvalue" nillable="true" />
+			<xs:element name="PSP" type="bool" nillable="true" />
+			<xs:element name="PU" type="XUvalue" nillable="true" />
+			<xs:element name="PWBC" type="XWBCvalue" nillable="true" />
+			<xs:element name="RADIOX" type="bool" nillable="true" />
+			<xs:element name="RAICU1" type="icm" nillable="true" />
+			<xs:element name="RAICU2" type="icm" nillable="true" />
+			<xs:element name="RDIS_V3" type="RDISV3List" nillable="true" />
+			<xs:element name="REFOD" type="bool" nillable="true" />
+			<xs:element name="RESA" type="RESAList" nillable="true" />
+			<xs:element name="RESD" type="RESDList" nillable="true" />
+			<xs:element name="RPR" type="PRList" nillable="true" />
+			<xs:element name="RSD" type="CCMDSvalue" nillable="true" />
+      			<xs:element name="SCODE" type="SCODEvalue" nillable="true" />
+      			<xs:element name="SEDPAR" type="SEDPARList" nillable="true" />
+			<xs:element name="SEX" type="SEXList" nillable="true" />
+			<xs:element name="SOHA" type="hospitalSectorList" nillable="true" />
+			<xs:element name="SOHD" type="hospitalSectorList" nillable="true" />
+			<xs:element name="SRD" type="bool" nillable="true" />
+			<xs:element name="STERX" type="bool" nillable="true" />
+			<xs:element name="TAICU" type="xs:time" nillable="true" />
+			<xs:element name="TBRICU" type="xs:time" nillable="true" />
+			<xs:element name="TDBSD" type="xs:time" nillable="true" />
+			<xs:element name="TDICU" type="xs:time" nillable="true" />
+			<xs:element name="TEXT" type="text" nillable="true" />
+			<xs:element name="TGA" type="bool" nillable="true" />
+			<xs:element name="TGD" type="bool" nillable="true" />
+			<xs:element name="TNESSA" type="TNESSAList" nillable="true" />
+			<xs:element name="TNESSD" type="TNESSDList" nillable="true" />
+			<xs:element name="TOD" type="xs:time" nillable="true" />
+			<xs:element name="TTW" type="xs:time" nillable="true" />
+			<xs:element name="TUADNO" type="adno" nillable="true" />
+			<xs:element name="TUIDI" type="TUIDXvalue" nillable="true" />
+			<xs:element name="TUIDO" type="TUIDXvalue" nillable="true" />
+			<xs:element name="TWFRD" type="xs:time" nillable="true" />
+			<xs:element name="TYPEIHA" type="adultICUTypeList" nillable="true" />
+			<xs:element name="TYPEIHD" type="adultICUTypeList" nillable="true" />
+			<xs:element name="UDIS" type="lifeStatusList" nillable="true" />
+			<xs:element name="UHDIS" type="lifeStatusList" nillable="true" />
+			<xs:element name="UP" type="UPvalue" nillable="true" />
+			<xs:element name="URAICU" type="icm" nillable="true" />
+			<xs:element name="VERL" type="VERLvalue" nillable="true" />
+			<xs:element name="VRE" type="VREList" nillable="true" />
+			<xs:element name="VSCD" type="bool" nillable="true" />
+      			<xs:element name="WKG" type="WKGvalue" nillable="true" />
+			<xs:element name="WKGEST" type="bool" nillable="true" />
+		</xs:all>
+	</xs:complexType>
+	<xs:element name="ICNARC">
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element name="ADMISSION" type="ADMISSION"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<!-- Text - the only stipulation here is that it does not exceed 250 chars -->
+	<xs:simpleType name="text">
+		<xs:restriction base="xs:string">
+			<xs:maxLength value="250"></xs:maxLength>
+			<xs:whiteSpace value="collapse"></xs:whiteSpace>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- Booleans - either a 1 (meaning 'true') or 0 (meaning 'false') is allowed -->
+	<xs:simpleType name="bool">
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="1"/>
+			<xs:enumeration value="0"/>
+		</xs:restriction>
+	</xs:simpleType>
+  <!-- ICM fields - only A.B.C, A.B.C.D or A.B.C.D.E is a valid format; A in {1, 2}; B = {1-13}; C = {1-16}; D(opt.) = {1-57}; E(opt.) = {1-22} -->
+  <xs:simpleType name="icm">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[1-2]\.([1-9]|[1][0-3])\.([1-9]|[1][0-6])([\.]([1-9]|[1-5][0-9])([\.]([1-9]|[1-2][0-9])){0,1}){0,1}"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <!-- Postcode (country in some cases) - only alphanumeric characters are allowed, as well as embedded spaces -->
+	<xs:simpleType name="postcode"> 
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[ a-zA-Z0-9]{1,8}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- ADNO types - all values from 20090001 - 20999999 are allowed -->
+	<xs:simpleType name="adno">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="20090001"/>
+			<xs:maxInclusive value="20999999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--START of: Acceptable ranges for all DATE fields follow.....-->
+	<!-- DOB: Minimum of 1 January 1900 -->
+	<xs:simpleType name="DOBvalue">
+		<xs:restriction base="xs:date">
+			<xs:minInclusive value="1900-01-01"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- DADEL: Minimum of 20 November 2008 -->
+	<xs:simpleType name="DADELvalue">
+		<xs:restriction base="xs:date">
+			<xs:minInclusive value="2011-11-20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- DOAH, DAH, DLCCA, DOAICU: Minimum of 1 January 2003 -->
+	<xs:simpleType name="PreICUDATEvalue">
+		<xs:restriction base="xs:date">
+			<xs:minInclusive value="2006-01-01"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- All *OTHER* dates: Minimum of 1 January 2009 -->
+	<xs:simpleType name="DATEvalue">
+		<xs:restriction base="xs:date">
+			<xs:minInclusive value="2012-01-01"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!--START of: Acceptable ranges for all NUMERIC fields follow.....-->
+	  <!-- ANCX: 0.0 - 999.9 -->
+	<xs:simpleType name="ANCXvalue">
+	    <xs:restriction base="xs:decimal">
+	      <xs:minInclusive value="0"/>
+	      <xs:maxInclusive value="999.9"/>
+	    </xs:restriction>
+	</xs:simpleType>
+  	<!-- ASSOCIATEDPACO2: 0 - 375.7 -->
+	<xs:simpleType name="ASSOCIATEDPACO2value">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="375.7"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- BLOODGAS: 1 - 794.3 -->
+	<xs:simpleType name="BLOODGASvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="794.3"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- BSA: 0 - 100 -->
+	<xs:simpleType name="BSAvalue">
+	    <xs:restriction base="xs:unsignedInt">
+	      <xs:minInclusive value="0"/>
+	      <xs:maxInclusive value="100"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	<!-- CCMDS: 0 - 999 (strictly speaking, some of the fields having this definition are not in the CCMDS. However, they are related to the other fields in terms of range.  )-->
+	<xs:simpleType name="CCMDSvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- DHRS: 0 - 99 -->
+	<xs:simpleType name="DHRSvalue">
+	    <xs:restriction base="xs:unsignedInt">
+	      <xs:minInclusive value="0"/>
+	      <xs:maxInclusive value="99"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	<!-- EYEL: 1 - 4 -->
+	<xs:simpleType name="EYELvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="4"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- FILPO: 0.21 - 1 -->
+	<xs:simpleType name="FILPOvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0.21"/>
+			<xs:maxInclusive value="1"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- GESTX: 2 - 47 -->
+	<xs:simpleType name="GESTXvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="2"/>
+			<xs:maxInclusive value="47"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- HCM: 40 - 250 -->
+	<xs:simpleType name="HCMvalue">
+	    <xs:restriction base="xs:unsignedInt">
+	      <xs:minInclusive value="40"/>
+	      <xs:maxInclusive value="250"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	<!-- ILPO: 1 - 751.3 -->
+	<xs:simpleType name="ILPOvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="751.3"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- LEVX: 0 - 3 -->
+	<xs:simpleType name="LEVXvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="3"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- LTOT: 3 - 15 -->
+	<xs:simpleType name="LTOTvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="3"/>
+			<xs:maxInclusive value="15"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- MOTL: 1 - 6 -->
+	<xs:simpleType name="MOTLvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="6"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- NPCS: 0 - 20 -->
+	<xs:simpleType name="NPCSvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- NPLSB: 0 - 99 -->
+	<xs:simpleType name="NPLSBvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="99"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- NUMBER0TO9: 0 - 9 -->
+	<xs:simpleType name="NUMBER0TO9value">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="9"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- PDIAX: 0 - 200 -->
+	<xs:simpleType name="PDIAXvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="200"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- SCODE: 100 - 840 (must be a 3-digit code; no left padding with "0") -->
+	<xs:simpleType name="SCODEvalue">
+	    <xs:restriction base="xs:unsignedInt">
+	      <xs:minInclusive value="100"/>
+	      <xs:maxInclusive value="840"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	<!-- TUIDX: 1 - 999 - these fields are sometimes left-padded with "0". These must be stripped. Eg: 012 must be exported as 12-->
+	<xs:simpleType name="TUIDXvalue">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[0-9]{1,3}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XBL: 0.1 - 35 -->
+	<xs:simpleType name="XBLvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0.1"/>
+			<xs:maxInclusive value="35"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XCREAT: 9 - 5000 -->
+	<xs:simpleType name="XCREATvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="9"/>
+			<xs:maxInclusive value="5000"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XCTEMP: 0 - 46 -->
+	<xs:simpleType name="XCTEMPvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="46"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XG: 0.1 - 160 -->
+	<xs:simpleType name="XGvalue">
+	    <xs:restriction base="xs:decimal">
+	      <xs:minInclusive value="0.1"/>
+	      <xs:maxInclusive value="160"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	<!-- XHB: 0 - 30 -->
+	<xs:simpleType name="XHBvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="30"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XHCO: 0 - 80 -->
+	<xs:simpleType name="XHCOvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="80"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XHR: 0 - 450 -->
+	<xs:simpleType name="XHRvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="450"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XK: 0.2 - 20 -->
+	<xs:simpleType name="XKvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0.2"/>
+			<xs:maxInclusive value="20"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XNA: 40 - 260 -->
+	<xs:simpleType name="XNAvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="40"/>
+			<xs:maxInclusive value="260"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XNVRR: 0 - 100 -->
+	<xs:simpleType name="XNVRRvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="100"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XPC: 0 - 9999 -->
+	<xs:simpleType name="XPCvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="9999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XSYS: 0 - 400 -->
+	<xs:simpleType name="XSYSvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="400"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XU: 0 - 300 -->
+	<xs:simpleType name="XUvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="300"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XVRR: 3 - 999 -->
+	<xs:simpleType name="XVRRvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="3"/>
+			<xs:maxInclusive value="999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- XWBC: 0 - 9999 -->
+	<xs:simpleType name="XWBCvalue">
+		<xs:restriction base="xs:decimal">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="9999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- UP: 0 - 99999 -->
+	<xs:simpleType name="UPvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="99999"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- VERL: 1 - 5 -->
+	<xs:simpleType name="VERLvalue">
+		<xs:restriction base="xs:unsignedInt">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="5"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- WKG: 1 - 600 -->
+	<xs:simpleType name="WKGvalue">
+	    <xs:restriction base="xs:unsignedInt">
+	      <xs:minInclusive value="1"/>
+	      <xs:maxInclusive value="600"/>
+	    </xs:restriction>
+	</xs:simpleType>
+	<!--END of: Acceptable ranges for all numeric fields... -->
+	<!-- CMP Number - must be in the format AXX; A = A-Z, X = 0-9 -->
+	<xs:simpleType name="cmpNumber"> 
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[a-zA-Z]{1}[0-9]{2}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- NHS Number - must be in the format XXXXXXXXXX; X = 0-9 -->
+	<xs:simpleType name="nhsNumber"> 
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[0-9]{10}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<!-- Enumerated types follow - these are all single-character strings -->
+	<xs:simpleType name="ACONList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="Y"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="AIDSV3List"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="N"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ASSODList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="Y"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="criticalCareList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="infectionList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CLASSNSList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="L"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CPRV3List"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="N"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="CRPREGList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="R"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="DEPList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="J"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="T"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="DESTHV3List"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="lifeStatusList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="D"/>
+			<xs:enumeration value="E"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="EDEPList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="D"/>
+			<xs:enumeration value="J"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="T"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ETHNICList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="D"/>
+			<xs:enumeration value="E"/>
+			<xs:enumeration value="F"/>
+			<xs:enumeration value="G"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="J"/>
+			<xs:enumeration value="K"/>
+			<xs:enumeration value="L"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="Z"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ITWV3List"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="W"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="LOCAList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="E"/>
+			<xs:enumeration value="G"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="I"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="T"/>
+			<xs:enumeration value="U"/>
+			<xs:enumeration value="W"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="LOCDList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="I"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="U"/>
+			<xs:enumeration value="W"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="hospitalHousingList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="S"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="NASSESSList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="N"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="MOUAIBList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="I"/>
+			<xs:enumeration value="K"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="T"/>
+			<xs:enumeration value="U"/>
+			<xs:enumeration value="V"/>
+			<xs:enumeration value="Y"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="ODV3List"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="T"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="OUTRPList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="E"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="T"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PAV3List"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="L"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="PLOCAList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="I"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="U"/>
+			<xs:enumeration value="W"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="PRList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RDISV3List"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="S"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RESAList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="RESDList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="H"/>
+			<xs:enumeration value="L"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SEDPARList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="P"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="V"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="SEXList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="F"/>
+			<xs:enumeration value="M"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="hospitalSectorList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TNESSAList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="D"/>
+			<xs:enumeration value="T"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="TNESSDList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="D"/>
+			<xs:enumeration value="E"/>
+			<xs:enumeration value="F"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="adultICUTypeList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="B"/>
+			<xs:enumeration value="C"/>
+			<xs:enumeration value="G"/>
+			<xs:enumeration value="L"/>
+			<xs:enumeration value="M"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="O"/>
+			<xs:enumeration value="R"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="T"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="VREList"> 
+		<xs:restriction base="xs:NMTOKEN">
+			<xs:enumeration value="A"/>
+			<xs:enumeration value="N"/>
+			<xs:enumeration value="S"/>
+			<xs:enumeration value="U"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

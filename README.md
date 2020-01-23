@@ -1,24 +1,24 @@
 # icnarc2omop
 
-The role of this package is to help convert the most basic, elementary components of the ICNARC XML to OMOP CDM. This facilitates the set up of an OMOP style CDM, to while users can then populate with information from their EHR.
+The role of this package is to help convert the most elementary components of the ICNARC XML to OMOP CDM version 6. This facilitates the set up of an OMOP style CDM, acting as a base from which users can then populate with data from their local EHR.
 
 ## Prerequisites
 
-- A running database (I will use postgres in this demo)
-- R and, preferably, R Studio
-- Some ICNARC xmls
-- A text file describing the ETL process for generating the ICNARC XML
-- Downloaded CDM 6 vocabuaries from Athena
+- A running target empty database
+- R (R is mandatory, R Studio is useful)
+- The ICNARC xmls you wish to convert
+- A text file describing the ETL process that generated the ICNARC files (for data provenance)
+- A download of the vocabuaries you would like to use from (Athena)[http://athena.ohdsi.org/]
 
 ## Getting Started
 
 Before using this package, you will need to:
 
-1. Set up a new database, and populate it with the OMOP tables.
-2. Create a project folder with the necessary files. I suggest this:
+1. Set up a new empty database
+2. Create a project folder and populate it with the necessary files. They MUST follow THIS convention:
 
 ```
-|--icnarc_xml/
+|--xml/
     |--icnarc01.xml
     |--icnarc02.xml
 |--meta/

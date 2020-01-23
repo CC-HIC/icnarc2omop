@@ -5,8 +5,7 @@
 \title{Create an OMOP database from ICNARC XML}
 \usage{
 omopify_xml(
-  xml_path,
-  vocab_path,
+  project_path,
   nhs_trust,
   source_description,
   cdm_version = "6.0.0",
@@ -20,10 +19,6 @@ omopify_xml(
 )
 }
 \arguments{
-\item{xml_path}{the path to a folder with ICNARC style XML.}
-
-\item{vocab_path}{the path to a folder with OMOP style Vocabularies.}
-
 \item{nhs_trust}{a character string with the full name of the trust.}
 
 \item{source_description}{path of a comprehensive note about the origin and
@@ -47,6 +42,10 @@ plain text file.}
 \item{username}{username to database (must have write privaleges)}
 
 \item{sqlite_file}{a filename if using sqlite}
+
+\item{xml_path}{the path to a folder with ICNARC style XML.}
+
+\item{vocab_path}{the path to a folder with OMOP style Vocabularies.}
 
 \item{password}{database password}
 }

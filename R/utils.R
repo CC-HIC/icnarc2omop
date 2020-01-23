@@ -1,3 +1,10 @@
+transact <- function(connection, query) {
+  st <- DBI::dbSendStatement(connection, query)
+  check <- DBI::dbHasCompleted(st)
+  DBI::dbClearResult(st)
+  return(check)
+}
+
 select_last <- function(x) {
   if (all(is.na(x))) {
     return(x[1])

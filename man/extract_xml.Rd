@@ -8,13 +8,13 @@ extract_xml(xml_path)
 }
 \arguments{
 \item{xml_path}{the path to a folder with ICNARC style XML. This folder
-should contain NOTHING but XML. The XML should be labelled in
+should contain *NOTHING* but XML. The XML should be labelled in
 lexicographical order (i.e. the order you want the files to be read in).
 For example, my_xml01.xml, my_xml02.xml and so on. Please do not rely on
-dates in the names parse files in the correct order.}
+dates in the names of files for them to parse in the correct order.}
 }
 \value{
-a data frame with ICNARC data
+a data frame representation of ICNARC data
 }
 \description{
 Extracts data from a version 3 ICNARC xml and converts it into a useful
