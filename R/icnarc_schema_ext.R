@@ -45,5 +45,3 @@ ic2 <- ic %>%
     }
   )
   )
-
-save(ic2, file = "~/Desktop/ic2.RData")

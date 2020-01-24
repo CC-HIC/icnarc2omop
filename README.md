@@ -9,19 +9,21 @@ The role of this package is to help convert the most elementary components of th
 - The ICNARC xmls you wish to convert
 - A text file describing the ETL process that generated the ICNARC files (for data provenance)
 - A download of the vocabuaries you would like to use from (Athena)[http://athena.ohdsi.org/]
+- A PC with at least 8Gb of memory (moving the OMOP vocabularies through memory is the main bottleneck). If this is a problem, please let me know and I will write a chunking function to mitigate this issue.
 
 ## Getting Started
 
 Before using this package, you will need to:
 
 1. Set up a new empty database
-2. Create a project folder and populate it with the necessary files. They MUST follow THIS convention:
+2. Create a project folder and populate it with the necessary files. They *MUST* follow this convention *EXACTLY*:
 
 ```
 |--xml/
     |--icnarc01.xml
     |--icnarc02.xml
 |--meta/
+    |--src_desc.txt
     |--provenance_info.txt
 |--vocab/
     |--CONCEPT_ANCESTOR.csv
@@ -34,6 +36,16 @@ Before using this package, you will need to:
     |--DOMAIN.csv
     |--RELATIONSHIP.csv
 ```
+
+## Metadata text files.
+
+Two meta data files with names: "src_desc.txt" and "provenance_info.txt" must be placed in the `meta` folder.
+
+### src_desc.txt
+
+This file contains a description of the source data origin and purpose for collection. The description may contain a summary of the period of time that is expected to be covered by this dataset.
+
+###
 
 Please see [here](https://github.com/OHDSI/CommonDataModel) for the OMOP CDM repo. Choose the appropraite DDL for your database engine and instantionate a database with the tables. We will use an example with postgresql:
 

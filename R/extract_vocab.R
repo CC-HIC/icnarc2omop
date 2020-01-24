@@ -12,13 +12,13 @@
 #'
 #' @return a list of tables containing the vocabularies
 #' @export
-extract_vocab <- function(vocabulary_path) {
+extract_vocab <- function(vocabulary_path, enforce_constraints = TRUE) {
 
   # Identify Files
   csvs <- list.files(vocabulary_path)
   fnames <- str_sub(tolower(csvs), 1, -5)
   csvs <- csvs[grepl("\\.csv$", csvs)]
-  csvs <- paste0(vocabulary_path, csvs)
+  csvs <- file.path(vocabulary_path, csvs)
 
   ## This was frustratingly difficult to do programatically, due to the
   ## way in which you specify column types in readr. I give up.
@@ -95,10 +95,82 @@ extract_vocab <- function(vocabulary_path) {
     )
   )
 
+  col_constraints <- list(
+    concept = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NULL"),
+    concept_ancestor = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL"
+    ),
+    concept_class = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL"
+    ),
+    concept_relationship = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NULL"
+    ),
+    concept_synonym = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL"
+    ),
+    domain = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL"
+    ),
+    drug_strength = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NULL",
+      "NULL",
+      "NULL",
+      "NULL",
+      "NULL",
+      "NULL",
+      "NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NULL"
+    ),
+    relationship = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL"
+    ),
+    vocabulary = c(
+      "NOT NULL",
+      "NOT NULL",
+      "NOT NULL",
+      "NULL",
+      "NOT NULL"
+    )
+  )
+
   # Match up the order
   csvs <- csvs[match(names(col_specs), fnames)]
 
-  # Read
+  # Read in
   vocab <- map2(
     .x = csvs,
     .y = col_specs,
@@ -109,6 +181,24 @@ extract_vocab <- function(vocabulary_path) {
       delim = "\t",
       progress = FALSE)
   )
+
+  names(vocab) <- names(col_specs)
+
+  if (enforce_constraints) {
+  # Check constraints
+    for (i in 1:length(col_constraints)) {
+      names(col_constraints[[i]]) <- names(vocab[[i]])
+    }
+
+    # Removes fiels that violate constraints
+    vocab <- vocab %>%
+      imap(
+        ~ filter_at(.x,
+          .vars =
+            vars(names(col_constraints[[.y]][col_constraints[[.y]] == "NOT NULL"])),
+            .vars_predicate = all_vars(!is.na(.))))
+
+  }
 
   return(vocab)
 

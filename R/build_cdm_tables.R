@@ -4,13 +4,13 @@
 setup_cdm_source <- function(
   inmem_cdm,
   nhs_trust,
-  source_description,
+  project_path,
   max_date,
   cdm_version,
   vocabulary_version
 ) {
 
-  text_description <- read_file(source_description)
+  text_description <- read_file(file.path(project_path, "meta/src_desc.txt"))
 
   inmem_cdm[["cdm_source"]] %>%
     mutate(

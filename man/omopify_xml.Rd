@@ -7,7 +7,6 @@
 omopify_xml(
   project_path,
   nhs_trust,
-  source_description,
   cdm_version = "6.0.0",
   vocabulary_version = "5",
   database_name = NULL,
@@ -19,12 +18,12 @@ omopify_xml(
 )
 }
 \arguments{
-\item{nhs_trust}{a character string with the full name of the trust.}
+\item{project_path}{the path to a project folder with:
+- vocab
+- meta
+- xml}
 
-\item{source_description}{path of a comprehensive note about the origin and
-provenance of the ICNARC XML for example, what systems in the hospital
-are used to compile the XML, or is it created by hand. Should point to a
-plain text file.}
+\item{nhs_trust}{a character string with the full name of the trust.}
 
 \item{cdm_version}{the version of the CDM you are using. Can only be
 "6.0.0" at present}
@@ -42,10 +41,6 @@ plain text file.}
 \item{username}{username to database (must have write privaleges)}
 
 \item{sqlite_file}{a filename if using sqlite}
-
-\item{xml_path}{the path to a folder with ICNARC style XML.}
-
-\item{vocab_path}{the path to a folder with OMOP style Vocabularies.}
 
 \item{password}{database password}
 }

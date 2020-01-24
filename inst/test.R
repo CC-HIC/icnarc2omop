@@ -1,49 +1,21 @@
-#' Create an OMOP database from ICNARC XML
-#'
-#' This function instantionates an OHDSI CDM 6 (referred to throughout as OMOP
-#' for brevity) database from raw ICNARC XML. In doing so, it creates an
-#' extremely spartan instance of OMOP. This behaviour is intentional to short
-#' cut the creation of an OMOP database. After the OMOP database has been
-#' created, you have the option to add more data directly from more ICNARC XML
-#' in the future, or begin to populate the database directly with data from
-#' another source.
-#'
-#' @param project_path the path to a project folder with:
-#'  - vocab
-#'  - meta
-#'  - xml
-#' @param nhs_trust a character string with the full name of the trust.
-#' @param cdm_version the version of the CDM you are using. Can only be
-#'   "6.0.0" at present
-#' @param vocabulary_version the version of the vocabulary you are using
-#' @param database_name the name of the database you are connecting to
-#' @param database_engine the database engine (e.g. sql server)
-#' @param host_name host ip address
-#' @param port_no port number
-#' @param username username to database (must have write privaleges)
-#' @param password database password
-#' @param sqlite_file a filename if using sqlite
-#'
-#' @importFrom purrr iwalk
-#' @importFrom rlang inform
-#' @importFrom DBI dbConnect
-#' @importFrom RPostgres Postgres
-#' @importFrom RMySQL MySQL
-#' @importFrom odbc odbc
-#' @importFrom RSQLite SQLite
-#'
-#' @return TRUE if completed without errors
-#' @export
-omopify_xml <- function(project_path,
-                        nhs_trust,
-                        cdm_version = "6.0.0",
-                        vocabulary_version = "5",
-                        database_name = NULL,
-                        database_engine = "postgres",
-                        host_name = "localhost",
-                        port_no = 5432,
-                        username = NULL,
-                        sqlite_file = NULL) {
+project_path = "~/Documents/icnarc_muncher"
+            database_name = "omoptest"
+            database_engine = "postgres"
+            host_name = "localhost"
+            port_no = 5432
+            username = "edward"
+            cdm_version = "6.0.0"
+            vocabulary_version = "5"
+            sqlite_file = NULL
+
+ctn <- DBI::dbConnect(
+  RPostgres::Postgres(),
+  host = "localhost",
+  port = 5432,
+  user = "edward",
+  password = rstudioapi::askForPassword("Please enter your password"),
+  dbname = "omoptest"
+)
 
   # Check db engine is valid
   database_engine <- tolower(database_engine)
@@ -51,7 +23,7 @@ omopify_xml <- function(project_path,
     "sqlite",
     "postgres",
     "mysql"
-    )
+  )
 
   if (all(!(database_engine %in% db_options))) {
     rlang::abort(
@@ -90,7 +62,7 @@ omopify_xml <- function(project_path,
       user = username,
       password = rstudioapi::askForPassword("Please enter your password"),
       dbname = database_name
-      )
+    )
   } else {
     ctn <- DBI::dbConnect(RSQLite::SQLite(), sqlite_file)
   }
@@ -148,8 +120,7 @@ omopify_xml <- function(project_path,
   # VOCABULARIES ====
 
   rlang::inform("Reading in vocabularies")
-  my_vocab <- extract_vocab(file.path(project_path, "vocab"))
-  rlang::inform("Writing vocabularies to database. Go grab a coffee...")
+  my_vocab <- extract_vocab(file.path(project_path, "vocab"), enforce_constraints = TRUE)
   iwalk(my_vocab, ~ DBI::dbAppendTable(
     ctn, name = .y, value = .x)
   )
@@ -167,7 +138,7 @@ omopify_xml <- function(project_path,
       max_date,
       cdm_version,
       vocabulary_version
-      )
+    )
 
   my_cdm[["metadata"]] <- setup_metadata(my_cdm)
 

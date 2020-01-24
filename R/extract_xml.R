@@ -16,7 +16,7 @@
 #'   xml_text
 #' @importFrom lubridate as_date
 #' @importFrom hms as_hms hms
-#' @importFrom tidyr spread
+#' @importFrom tidyr pivot_wider
 #' @importFrom stringr str_pad
 #' @importFrom dplyr select filter group_by summarise tibble bind_rows if_else
 #'   vars mutate one_of distinct case_when n left_join
@@ -44,23 +44,15 @@ extract_xml <- function(xml_path) {
 
   # Calculate future table dimentions
   id_list <- admissions %>%
-    map(~ rep(seq_len(.x), xml_length(.x)))
+    map(~ rep(1:length(.x), xml_length(.x)))
 
   # Convert to data frame and merge
   df <- pmap(
-    list(
-      id_list,
-      node_names,
-      contents
-    ),
-    ~ tibble(
-      id = ..1,
-      node_names = ..2,
-      contents = ..3)
+    list(id_list, node_names, contents),
+    ~ tibble(id = ..1, node_names = ..2, contents = ..3)
   ) %>%
     map_dfr(
-      ~ mutate(
-        .data = .x,
+      ~ mutate(.x,
         contents =
           if_else(
             .data[["contents"]] == "" |
@@ -70,7 +62,7 @@ extract_xml <- function(xml_path) {
             .data[["contents"]]
           )
         ) %>%
-        spread(node_names, contents)
+        pivot_wider(names_from = node_names, values_from = contents)
     ) %>%
     select(one_of(data_spec$icnarc))
 
