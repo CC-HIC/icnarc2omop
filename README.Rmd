@@ -69,6 +69,27 @@ Before using this package, you will need to:
 
 "src_desc.txt" must be placed in the `meta` folder. This file contains a description of the source data origin and purpose for collection. The description may contain a summary of the period of time that is expected to be covered by this dataset.
 
+## Vocabularies
+
+Please download the following vocabularies from athena, and add them to your project vocabulary folder:
+
+- 1	SNOMED
+- 6 LOINC
+- 8	RxNorm
+- 12 Gender
+- 13 Race
+- 14 CMS Place of Service
+- 34 ICD10
+- 44 Ethnicity
+- 55 OPCS4
+- 57 HES Specialty
+- 75 dm+d
+- 82 RxNorm Extension
+- 87 Specimen Type
+- 111 Episode Type
+- 115 Provider
+- 116 Supplier
+
 ## Omopification
 
 You can now run the muncher by calling:
