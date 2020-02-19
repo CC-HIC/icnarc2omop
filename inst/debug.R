@@ -1,93 +1,25 @@
-#' Create an OMOP database from ICNARC XML
-#'
-#' This function instantiates an OHDSI CDM (referred to throughout as OMOP for
-#' brevity) database from raw ICNARC XML. It can be specfied to output either
-#' version 5.3.1 or 6.0.0. In doing so, it creates an extremely spartan instance
-#' of OMOP. This behaviour is intentional to short cut the creation of an OMOP
-#' database, which can be a daunting process. After the OMOP database has been
-#' created, you have the option to add more data directly from additional ICNARC
-#' XML in the future, or begin to populate the database directly with data from
-#' another source, with your patient and their outcomes already populated.
-#'
-#' @param project_path the path to your project folder with the following
-#'   populated folders:
-#' \itemize{
-#'   \item vocab - contains ATHENA vocabularies.
-#'   \item meta - constains metadata on the ICNARC ETL process.
-#'   \item xml - contains raw ICNARC XML in lexicographical order.
-#' }
-#' @param nhs_trust a character string with the full name of the trust.
-#' @param cdm_version the version of the CDM you are using, choose from:
-#' \itemize{
-#'   \item 5.3.1
-#'   \item 6.0.0
-#' }
-#' @param vocabulary_version the version of the vocabulary you are using
-#' @param database_name the name of the database you are connecting to
-#' @param database_engine the database engine, choose from:
-#' \itemize{
-#'   \item sqlite: SQLite
-#'   \item postgres: PostgreSQL
-#'   \item mysql: Microsoft SQL Server (or similar varients)
-#' }
-#' @param host_name host ip address
-#' @param port_no port number
-#' @param username username to database (*must* have write privaleges)
-#' @param sqlite_file a filename if using sqlite
-#' @param indexes logical flag: do you want to create db with indexes
-#' @param constraints logical flag: do you want to create db with relational
-#'   constraints
-#' @param from_empty  logical flag: do you want to create the OMOP database from
-#'   stratch. If you want to first write out the tables yourself this can be
-#'   set to FALSE
-#' @param vocabulary  logical flag: do you want to write out vocabularies
-#' @param dummy_data logical flag: do you want to ignore XML files and use local
-#'   dummy data instead
-#'
-#' @importFrom DBI dbConnect dbDisconnect dbListTables
-#' @importFrom dplyr collect tbl filter
-#' @importFrom glue glue
-#' @importFrom magrittr extract extract2 set_names
-#' @importFrom odbc odbc
-#' @importFrom purrr iwalk imap map_lgl
-#' @importFrom readr read_file read_lines
-#' @importFrom rlang inform abort
-#' @importFrom RMySQL MySQL
-#' @importFrom RPostgres Postgres
-#' @importFrom rstudioapi askForPassword
-#' @importFrom RSQLite SQLite
-#' @importFrom stringr str_extract_all str_subset
-#'
-#' @return TRUE if completed without errors
-#' @export
-omopify_xml <- function(project_path,
-                        nhs_trust,
-                        cdm_version = "5.3.1",
-                        vocabulary_version = "5",
-                        database_name = NULL,
-                        database_engine = "postgres",
-                        host_name = "localhost",
-                        port_no = 5432,
-                        username = NULL,
-                        from_empty = TRUE,
-                        vocabulary = TRUE,
-                        indexes = TRUE,
-                        constraints = TRUE,
-                        sqlite_file = NULL,
-                        dummy_data = FALSE) {
+project_path <- "../temp_icnarc"
+nhs_trust <- "UCLH"
+cdm_version = "5.3.1"
+                        vocabulary_version = "5"
+                        database_name = "omop"
+                        database_engine = "postgres"
+                        host_name = "localhost"
+                        port_no = 5432
+                        username = "edward"
+                        from_empty = TRUE
+                        vocabulary = TRUE
+                        indexes = TRUE
+                        constraints = TRUE
+                        sqlite_file = NULL
   fstart <- Sys.time()
-
-  if (!(any(c("5.3.1", "6.0.0") == cdm_version))) {
-    abort(glue("{cdm_version} is not a valid choice"))
-  }
-
   # Check db engine is valid
   database_engine <- tolower(database_engine)
   db_options <- c(
     "sqlite",
     "postgres",
     "mysql"
-    )
+  )
 
   if (all(!(database_engine %in% db_options))) {
     abort(
@@ -126,7 +58,7 @@ omopify_xml <- function(project_path,
       user = username,
       password = askForPassword("Please enter your password"),
       dbname = database_name
-      )
+    )
   } else {
     ctn <- dbConnect(RSQLite::SQLite(), sqlite_file)
   }
@@ -220,23 +152,10 @@ omopify_xml <- function(project_path,
 
   inform("Reading and converting XML")
 
-  if (dummy_data) {
-
-  load(
-    system.file(
-      "dummy_data",
-      "fake.RData",
-      package = "icnarc2omop")
-  )
-
-  } else {
-
-    # Convert XML to the correct form
-    df <- extract_xml(file.path(project_path, "xml"))
-    ## Remove patients still inside the ICU at time of processing
-    df <- filter(df, .data[["dis"]] != "E")
-
-  }
+  # Convert XML to the correct form
+  df <- extract_xml(file.path(project_path, "xml"))
+  ## Remove patients still inside the ICU at time of processing
+  df <- filter(df, .data[["dis"]] != "E")
 
   inform("ICNARC XML parsed successfully")
 
@@ -253,7 +172,7 @@ omopify_xml <- function(project_path,
     inform("Writing vocabularies to database. Go grab a coffee...")
     iwalk(my_vocab, ~ write_notify(conn = ctn, name = .y, value = .x))
     inform("Vocabularies copied to database")
-    inform("Organising chickpeas")
+    inform("Reordering chickpeas")
     rm(my_vocab)
 
   }
@@ -270,7 +189,7 @@ omopify_xml <- function(project_path,
       max_date,
       cdm_version,
       vocabulary_version
-      )
+    )
 
   my_cdm[["metadata"]] <- setup_metadata(my_cdm)
 

@@ -313,21 +313,21 @@ setup_person_death <- function(inmem_cdm, input_data, project_path) {
                   .data[["location_source_value"]]),
               by = "location_source_value")
 
-  if (attr(inmem_cdm, "version") == 6) {
+  if (attr(inmem_cdm, "version") == "6.0.0") {
 
-    inmem_cdm[["person"]] <- full %>%
+    inmem_cdm[["person"]] <- ft %>%
       select(!!!names(inmem_cdm[["person"]]))
 
     return(inmem_cdm)
   }
 
-  if (attr(inmem_cdm, "version") == 5) {
+  if (attr(inmem_cdm, "version") == "5.3.1") {
 
-    inmem_cdm[["death"]] <- full %>%
+    inmem_cdm[["death"]] <- ft %>%
       filter(!is.na(.data[["death_type_concept_id"]])) %>%
       select(!!!names(inmem_cdm[["death"]]))
 
-    inmem_cdm[["person"]] <- full %>%
+    inmem_cdm[["person"]] <- ft %>%
       select(!!!names(inmem_cdm[["person"]]))
 
     return(inmem_cdm)
@@ -348,8 +348,25 @@ setup_person_death <- function(inmem_cdm, input_data, project_path) {
 #' @importFrom rlang !!! .data
 setup_observation_period <- function(inmem_cdm) {
 
-  inmem_cdm[["person"]] %>%
-    select(.data[["person_id"]], .data[["death_datetime"]]) %>%
+  if (attr(inmem_cdm, "version") == "5.3.1") {
+
+    op <- left_join(
+      inmem_cdm[["person"]],
+      inmem_cdm[["death"]] %>%
+        select(.data[["person_id"]], .data[["death_datetime"]]),
+      by = "person_id"
+    )
+
+  }
+
+  if (attr(inmem_cdm, "version") == "6.0.0") {
+
+    op <- inmem_cdm[["person"]] %>%
+      select(.data[["person_id"]], .data[["death_datetime"]])
+
+  }
+
+  op %>%
     mutate(
       observation_period_id = 1:n(),
       observation_period_start_date = as_date("2014-01-01"),
@@ -496,7 +513,7 @@ setup_visit_detail <- function(inmem_cdm, input_data) {
     mutate(visit_detail_id = 1:n(),
            visit_detail_concept_id = 32037L,
            visit_detail_type_concept_id = 44818518L,
-           provider_id = 0L) %>%
+           provider_id = as.integer(NA)) %>%
     mutate(
       visit_detail_start_date = .data[["daicu"]],
       visit_detail_start_datetime = as.POSIXct(
