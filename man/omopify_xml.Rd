@@ -7,7 +7,7 @@
 omopify_xml(
   project_path,
   nhs_trust,
-  cdm_version = "6.0.0",
+  cdm_version = "5.3.1",
   vocabulary_version = "5",
   database_name = NULL,
   database_engine = "postgres",
@@ -18,22 +18,26 @@ omopify_xml(
   vocabulary = TRUE,
   indexes = TRUE,
   constraints = TRUE,
-  sqlite_file = NULL
+  sqlite_file = NULL,
+  dummy_data = FALSE
 )
 }
 \arguments{
 \item{project_path}{the path to your project folder with the following
   populated folders:
 \itemize{
-  \item vocab - constains all ATHENA vocabularies
-  \item meta - constains metadata on the ICNARC ETL process
-  \item xml - contains raw ICNARC XML in lexicographical order
+  \item vocab - contains ATHENA vocabularies.
+  \item meta - constains metadata on the ICNARC ETL process.
+  \item xml - contains raw ICNARC XML in lexicographical order.
 }}
 
 \item{nhs_trust}{a character string with the full name of the trust.}
 
-\item{cdm_version}{the version of the CDM you are using. Can only be
-"6.0.0" at present}
+\item{cdm_version}{the version of the CDM you are using, choose from:
+\itemize{
+  \item 5.3.1
+  \item 6.0.0
+}}
 
 \item{vocabulary_version}{the version of the vocabulary you are using}
 
@@ -52,28 +56,32 @@ omopify_xml(
 
 \item{username}{username to database (*must* have write privaleges)}
 
-\item{from_empty}{logical flag if you want to create the OMOP database from
+\item{from_empty}{logical flag: do you want to create the OMOP database from
 stratch. If you want to first write out the tables yourself this can be
 set to FALSE}
 
-\item{vocabulary}{logical flag if you want to write out vocabularies}
+\item{vocabulary}{logical flag: do you want to write out vocabularies}
 
-\item{indexes}{logical flag if you want to create with indexes}
+\item{indexes}{logical flag: do you want to create db with indexes}
 
-\item{constraints}{logical flag if you want to create with relational
+\item{constraints}{logical flag: do you want to create db with relational
 constraints}
 
 \item{sqlite_file}{a filename if using sqlite}
+
+\item{dummy_data}{logical flag: do you want to ignore XML files and use local
+dummy data instead}
 }
 \value{
 TRUE if completed without errors
 }
 \description{
-This function instantiates an OHDSI CDM 6 (referred to throughout as OMOP for
-brevity) database from raw ICNARC XML. In doing so, it creates an extremely
-spartan instance of OMOP. This behaviour is intentional to short cut the
-creation of an OMOP database, which can be a daunting process. After the OMOP
-database has been created, you have the option to add more data directly from
-additional ICNARC XML in the future, or begin to populate the database
-directly with data from another source.
+This function instantiates an OHDSI CDM (referred to throughout as OMOP for
+brevity) database from raw ICNARC XML. It can be specfied to output either
+version 5.3.1 or 6.0.0. In doing so, it creates an extremely spartan instance
+of OMOP. This behaviour is intentional to short cut the creation of an OMOP
+database, which can be a daunting process. After the OMOP database has been
+created, you have the option to add more data directly from additional ICNARC
+XML in the future, or begin to populate the database directly with data from
+another source, with your patient and their outcomes already populated.
 }

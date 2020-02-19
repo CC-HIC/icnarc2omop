@@ -1,18 +1,40 @@
-create_indexes <- function(ctn, database_engine, project_path) {
+create_indexes <- function(ctn, cdm_version, database_engine, project_path) {
 
-  ddl_path <- database_engine %>%
-  switch(
-    sqlite = NULL,
-    postgres = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/PostgreSQL/OMOP%20CDM%20postgresql%20pk%20indexes.txt",
-    mysql = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/Sql%20Server/OMOP%20CDM%20sql%20server%20pk%20indexes.txt"
-  )
+  if (cdm_version == "5.3.1") {
 
-  download.file(
-    ddl_path,
-    destfile = file.path(project_path, "ddl/index.txt"),
-    quiet = TRUE)
+    ddl_path <- database_engine %>%
+      switch(
+        sqlite = NULL,
+        postgres = system.file(
+          "dll/5_3_1/PostgreSQL",
+          "OMOP CDM postgresql indexes.txt",
+          package = "icnarc2omop"),
+        mysql = system.file(
+          "dll/5_3_1/Sql Server",
+          "OMOP CDM sql server indexes.txt",
+          package = "icnarc2omop")
+      )
 
-  qrys <- read_lines(file.path(project_path, "ddl/index.txt")) %>%
+  }
+
+  if (cdm_version == "6.0.0") {
+
+    ddl_path <- database_engine %>%
+      switch(
+        sqlite = NULL,
+        postgres = system.file(
+          "dll/6_0_0/PostgreSQL",
+          "OMOP CDM postgresql indexes.txt",
+          package = "icnarc2omop"),
+        mysql = system.file(
+          "dll/5_3_1/Sql Server",
+          "OMOP CDM sql server indexes.txt",
+          package = "icnarc2omop")
+      )
+
+  }
+
+  qrys <- read_lines(ddl_path) %>%
     str_subset(";") %>%
     extract(2:length(.))
 
