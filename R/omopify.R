@@ -1,12 +1,13 @@
 #' Create an OMOP database from ICNARC XML
 #'
-#' This function instantiates an OHDSI CDM 6 (referred to throughout as OMOP for
-#' brevity) database from raw ICNARC XML. In doing so, it creates an extremely
-#' spartan instance of OMOP. This behaviour is intentional to short cut the
-#' creation of an OMOP database, which can be a daunting process. After the OMOP
-#' database has been created, you have the option to add more data directly from
-#' additional ICNARC XML in the future, or begin to populate the database
-#' directly with data from another source.
+#' This function instantiates an OHDSI CDM (referred to throughout as OMOP for
+#' brevity) database from raw ICNARC XML. It can be specfied to output either
+#' version 5.3.1 or 6.0.0. In doing so, it creates an extremely spartan instance
+#' of OMOP. This behaviour is intentional to short cut the creation of an OMOP
+#' database, which can be a daunting process. After the OMOP database has been
+#' created, you have the option to add more data directly from additional ICNARC
+#' XML in the future, or begin to populate the database directly with data from
+#' another source.
 #'
 #' @param project_path the path to your project folder with the following
 #'   populated folders:
@@ -16,8 +17,7 @@
 #'   \item xml - contains raw ICNARC XML in lexicographical order
 #' }
 #' @param nhs_trust a character string with the full name of the trust.
-#' @param cdm_version the version of the CDM you are using. Can only be
-#'   "6.0.0" at present
+#' @param cdm_version the version of the CDM you are using.
 #' @param vocabulary_version the version of the vocabulary you are using
 #' @param database_name the name of the database you are connecting to
 #' @param database_engine the database engine, choose from:
@@ -56,7 +56,7 @@
 #' @export
 omopify_xml <- function(project_path,
                         nhs_trust,
-                        cdm_version = "6.0.0",
+                        cdm_version = "5.3.1",
                         vocabulary_version = "5",
                         database_name = NULL,
                         database_engine = "postgres",
@@ -89,11 +89,6 @@ omopify_xml <- function(project_path,
   if (!all(c("meta", "xml", "vocab") %in% project_dirs)) {
     print(project_dirs %in% c("meta", "xml", "vocab"))
     abort("Your folder structure is not correct")
-  }
-
-  # Add ddl folder
-  if (!dir.exists(file.path(project_path, "ddl"))) {
-    dir.create(file.path(project_path, "ddl"))
   }
 
   # Add error folder
@@ -134,20 +129,42 @@ omopify_xml <- function(project_path,
       abort("You should be connecting to an empty database. Try again.")
     }
 
-    # Download table ddl
-    ddl_path <- database_engine %>%
-      switch(
-        sqlite = NULL,
-        postgres = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/PostgreSQL/OMOP%20CDM%20postgresql%20ddl.txt",
-        mysql = "https://raw.githubusercontent.com/OHDSI/CommonDataModel/master/Sql%20Server/OMOP%20CDM%20sql%20server%20ddl.txt"
-      )
-    download.file(
-      ddl_path,
-      destfile = file.path(project_path, "ddl/ddl.txt"),
-      quiet = TRUE)
+    if (cdm_version == "5.3.1") {
+
+      ddl_path <- database_engine %>%
+        switch(
+          sqlite = NULL,
+          postgres = system.file(
+            "dll/5_3_1/PostgreSQL",
+            "OMOP CDM postgresql ddl.txt",
+            package = "icnarc2omop"),
+          mysql = system.file(
+            "dll/5_3_1/Sql Server",
+            "OMOP CDM sql server ddl.txt",
+            package = "icnarc2omop")
+        )
+
+    }
+
+    if (cdm_version == "6.0.0") {
+
+      ddl_path <- database_engine %>%
+        switch(
+          sqlite = NULL,
+          postgres = system.file(
+            "dll/6_0_0/PostgreSQL",
+            "OMOP CDM postgresql ddl.txt",
+            package = "icnarc2omop"),
+          mysql = system.file(
+            "dll/5_3_1/Sql Server",
+            "OMOP CDM sql server ddl.txt",
+            package = "icnarc2omop")
+        )
+
+    }
 
     # Send create table statements
-    qrys <- read_file(file.path(project_path, "ddl/ddl.txt")) %>%
+    qrys <- read_file(ddl_path) %>%
       str_extract_all("(?s)(?<=CREATE TABLE).*?(?=;)") %>%
       extract2(1) %>%
       paste0("CREATE TABLE", ., ";")
@@ -166,10 +183,19 @@ omopify_xml <- function(project_path,
   ## We need the datatypes and structures.
   ## Any content can be ignored
   table_names <- sort(dbListTables(ctn))
-  vocabulary_names <- c("concept_ancestor", "concept_class",
-    "concept_relationship","concept_synonym",
-    "concept", "domain", "drug_strength",
-    "relationship", "vocabulary")
+
+  vocabulary_names <- c(
+    "concept",
+    "vocabulary",
+    "domain",
+    "concept_class",
+    "concept_relationship",
+    "relationship",
+    "concept_synonym",
+    "concept_ancestor",
+    "drug_strength"
+  )
+
   table_names <- table_names[!(table_names %in% vocabulary_names)]
 
   # Collect *NON vocabulary* items
@@ -177,6 +203,8 @@ omopify_xml <- function(project_path,
     .x = table_names,
     .f = ~ collect(tbl(ctn, .x))) %>%
     set_names(table_names)
+
+  attr(my_cdm, "version") <- cdm_version
 
   inform("Reading and converting XML")
 
@@ -228,7 +256,8 @@ omopify_xml <- function(project_path,
   my_cdm[["provider"]] <- setup_provider(my_cdm)
 
   # STANDARDISED CLINICAL DATA
-  my_cdm[["person"]] <- setup_person(my_cdm, df, project_path)
+  # Note the change in code style here to accomodate death/person tables
+  my_cdm <- setup_person_death(my_cdm, df, project_path)
   my_cdm[["observation_period"]] <- setup_observation_period(my_cdm)
 
   # Interruption to sequence to population location history

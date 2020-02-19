@@ -13,25 +13,44 @@ setup_cdm_source <- function(
 
   text_description <- read_file(file.path(project_path, "meta/src_desc.txt"))
 
-  inmem_cdm[["cdm_source"]] %>%
-    mutate(
-      cdm_source_name = "ICARNC Raw Submission XML",
-      cdm_source_abbreviation = "ICNARC",
-      cdm_holder = paste(nhs_trust, "& UCL"),
-      source_description = text_description,
-      cdm_etl_reference = "https://github.com/CC-HIC/icnarc2omop",
-      source_release_date = max_date,
-      cdm_release_date = Sys.Date(),
-      cdm_verion = cdm_version,
-      vocabulary_version = vocabulary_version
-    )
+  if (attr(inmem_cdm, "version") == "5.3.1") {
+    inmem_cdm[["cdm_source"]] <- inmem_cdm[["cdm_source"]] %>%
+      mutate(
+        cdm_source_name = "ICARNC Raw Submission XML",
+        cdm_source_abbreviation = "ICNARC",
+        cdm_holder = paste(nhs_trust, "& UCL"),
+        source_description = text_description,
+        source_documentation_reference = as.character(NA),
+        cdm_etl_reference = "https://github.com/CC-HIC/icnarc2omop",
+        source_release_date = max_date,
+        cdm_release_date = Sys.Date(),
+        cdm_verion = cdm_version,
+        vocabulary_version = vocabulary_version
+      )
+  }
+
+  if (attr(inmem_cdm, "version") == "6.0.0") {
+    inmem_cdm[["cdm_source"]] <- inmem_cdm[["cdm_source"]] %>%
+      mutate(
+        cdm_source_name = "ICARNC Raw Submission XML",
+        cdm_source_abbreviation = "ICNARC",
+        cdm_holder = paste(nhs_trust, "& UCL"),
+        source_description = text_description,
+        cdm_etl_reference = "https://github.com/CC-HIC/icnarc2omop",
+        source_release_date = max_date,
+        cdm_release_date = Sys.Date(),
+        cdm_verion = cdm_version,
+        vocabulary_version = vocabulary_version
+      )
+  }
+
+  return(inmem_cdm[["cdm_source"]])
 
 }
 
 #' @importFrom rlang inform
 setup_metadata <- function(inmem_cdm) {
 
-  inform("Metadata table is currently not filled")
   return(inmem_cdm[["metadata"]])
 
 }
@@ -172,7 +191,11 @@ setup_provider <- function(inmem_cdm) {
 
 # STANDARDISED CLINICAL DATA ====
 
-#' Setup Person Table
+#' Setup Person/Death Table/s
+#'
+#' The major difference between version 5 and 6 is that death has its own table
+#' in 5. Thus these tables are best written out together when trying to ETL to
+#' both.
 #'
 #' @param inmem_cdm
 #' @param input_data
@@ -183,7 +206,7 @@ setup_provider <- function(inmem_cdm) {
 #'   any_vars if_else left_join
 #' @importFrom rlang !!! .data
 #' @importFrom readr write_csv
-setup_person <- function(inmem_cdm, input_data, project_path) {
+setup_person_death <- function(inmem_cdm, input_data, project_path) {
 
   error_key <- input_data %>%
     group_by(.data[["key"]]) %>%
@@ -202,7 +225,7 @@ setup_person <- function(inmem_cdm, input_data, project_path) {
   write_csv(error_key, path = file.path(project_path, "errors/person_errors.csv"))
   }
 
-  input_data %>%
+  ft <- input_data %>%
     group_by(.data[["key"]]) %>%
     arrange(.data[["adno"]]) %>%
     summarise(
@@ -237,6 +260,15 @@ setup_person <- function(inmem_cdm, input_data, project_path) {
           as.POSIXct(.data[["ddbsd"]] + seconds(.data[["tdbsd"]])),
         TRUE ~ as.POSIXct(NA)
       ),
+      death_date = as.Date(death_datetime),
+      # Note, death table can then be filtered by this field.
+      death_type_concept_id = if_else(
+        !is.na(death_datetime),
+        32510L,
+        as.integer(NA)),
+      cause_concept_id = as.integer(NA),
+      cause_source_value = as.integer(NA),
+      cause_source_concept_id = as.integer(NA),
       race_concept_id = 0L,
       ethnicity_concept_id = 0L,
       location_source_value = .data[["pcode"]],
@@ -279,8 +311,28 @@ setup_person <- function(inmem_cdm, input_data, project_path) {
                 select(
                   .data[["location_id"]],
                   .data[["location_source_value"]]),
-              by = "location_source_value") %>%
-    select(!!!names(inmem_cdm[["person"]]))
+              by = "location_source_value")
+
+  if (attr(inmem_cdm, "version") == 6) {
+
+    inmem_cdm[["person"]] <- full %>%
+      select(!!!names(inmem_cdm[["person"]]))
+
+    return(inmem_cdm)
+  }
+
+  if (attr(inmem_cdm, "version") == 5) {
+
+    inmem_cdm[["death"]] <- full %>%
+      filter(!is.na(.data[["death_type_concept_id"]])) %>%
+      select(!!!names(inmem_cdm[["death"]]))
+
+    inmem_cdm[["person"]] <- full %>%
+      select(!!!names(inmem_cdm[["person"]]))
+
+    return(inmem_cdm)
+  }
+
 }
 
 
@@ -374,7 +426,9 @@ setup_visit_occurrence <- function(inmem_cdm, input_data, nhs_trust) {
         .data[["resa"]] == "N" ~ 8672L,
         is.na(.data[["resa"]]) ~ 0L
       ),
+      admitting_source_concept_id = admitted_from_concept_id,
       admitted_from_source_value = .data[["resa"]],
+      admitting_source_value = admitted_from_source_value,
       discharge_to_concept_id = case_when(
         .data[["resd"]] == "M" ~ 8536L,
         .data[["resd"]] == "U" ~ 8863L,
@@ -487,7 +541,9 @@ setup_visit_detail <- function(inmem_cdm, input_data) {
         .data[["resa"]] == "N" ~ 8672L,
         is.na(.data[["resa"]]) ~ 0L
       ),
+      admitting_source_concept_id = admitted_from_concept_id,
       admitted_from_source_value = .data[["resa"]],
+      admitting_source_value = admitted_from_source_value,
       discharge_to_concept_id = case_when(
         .data[["resd"]] == "M" ~ 8536L,
         .data[["resd"]] == "U" ~ 8863L,
@@ -520,7 +576,6 @@ setup_visit_detail <- function(inmem_cdm, input_data) {
     ungroup()
 
 }
-
 
 setup_condition_occurrence <- function(inmem_cdm) {
 
