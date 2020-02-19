@@ -20,6 +20,8 @@ data_spec <- tibble::tribble(
   "BSDTP", as.logical,
   "DDBSD", function(x) lubridate::as_date(x, tz = "GMT"),
   "TDBSD", hms::as_hms,
+  "DBRICU", function(x) lubridate::as_date(x, tz = "GMT"),
+  "TBRICU", hms::as_hms,
   "DOD", function(x) lubridate::as_date(x, tz = "GMT"),
   "TOD", hms::as_hms,
   "PLOCA", as.character,
@@ -27,5 +29,5 @@ data_spec <- tibble::tribble(
   "RESD", as.character,
 )
 
-load("./inst/all_tables.RData")
-usethis::use_data(data_spec, all_tables, internal = TRUE)
+#load("./inst/all_tables.RData")
+usethis::use_data(data_spec, internal = TRUE, overwrite = TRUE)

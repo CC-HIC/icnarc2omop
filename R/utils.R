@@ -5,6 +5,15 @@ transact <- function(connection, query) {
   return(check)
 }
 
+write_notify <- function(conn, name, value) {
+  DBI::dbWriteTable(conn = conn,
+                    name = name, value = value,
+                    overwrite = FALSE,
+                    append = TRUE,
+                    copy = TRUE)
+  rlang::inform(paste("Table:", name, "successfully written"))
+}
+
 select_last <- function(x) {
   if (all(is.na(x))) {
     return(x[1])

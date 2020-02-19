@@ -1,6 +1,6 @@
 # icnarc2omop
 
-The role of this package is to help convert the most elementary components of the ICNARC XML to OMOP CDM version 6. This facilitates the set up of an OMOP style CDM, acting as a base from which users can then populate with data from their local EHR.
+The role of this package is to help convert the most elementary components of the ICNARC XML to OMOP CDM version 6. This facilitates the set up of an OMOP style CDM, acting as a base from which users can then populate with data from their local EHR. This was a somewhat non-trivial task, since the ICNARC specification is episode centric, and the OMOP CDM is patient centric. This is necessitated a number of opinionated design decisions, especially in places where inforamtion of a person's hospital journey is lacking. These decisions may not work universally for all study designs.
 
 ## Prerequisites
 

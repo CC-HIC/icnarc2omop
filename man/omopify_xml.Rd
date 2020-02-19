@@ -14,14 +14,21 @@ omopify_xml(
   host_name = "localhost",
   port_no = 5432,
   username = NULL,
+  from_empty = TRUE,
+  vocabulary = TRUE,
+  indexes = TRUE,
+  constraints = TRUE,
   sqlite_file = NULL
 )
 }
 \arguments{
-\item{project_path}{the path to a project folder with:
-- vocab
-- meta
-- xml}
+\item{project_path}{the path to your project folder with the following
+  populated folders:
+\itemize{
+  \item vocab - constains all ATHENA vocabularies
+  \item meta - constains metadata on the ICNARC ETL process
+  \item xml - contains raw ICNARC XML in lexicographical order
+}}
 
 \item{nhs_trust}{a character string with the full name of the trust.}
 
@@ -32,27 +39,41 @@ omopify_xml(
 
 \item{database_name}{the name of the database you are connecting to}
 
-\item{database_engine}{the database engine (e.g. sql server)}
+\item{database_engine}{the database engine, choose from:
+\itemize{
+  \item sqlite: SQLite
+  \item postgres: PostgreSQL
+  \item mysql: Microsoft SQL Server (or similar varients)
+}}
 
 \item{host_name}{host ip address}
 
 \item{port_no}{port number}
 
-\item{username}{username to database (must have write privaleges)}
+\item{username}{username to database (*must* have write privaleges)}
+
+\item{from_empty}{logical flag if you want to create the OMOP database from
+stratch. If you want to first write out the tables yourself this can be
+set to FALSE}
+
+\item{vocabulary}{logical flag if you want to write out vocabularies}
+
+\item{indexes}{logical flag if you want to create with indexes}
+
+\item{constraints}{logical flag if you want to create with relational
+constraints}
 
 \item{sqlite_file}{a filename if using sqlite}
-
-\item{password}{database password}
 }
 \value{
 TRUE if completed without errors
 }
 \description{
-This function instantionates an OHDSI CDM 6 (referred to throughout as OMOP
-for brevity) database from raw ICNARC XML. In doing so, it creates an
-extremely spartan instance of OMOP. This behaviour is intentional to short
-cut the creation of an OMOP database. After the OMOP database has been
-created, you have the option to add more data directly from more ICNARC XML
-in the future, or begin to populate the database directly with data from
-another source.
+This function instantiates an OHDSI CDM 6 (referred to throughout as OMOP for
+brevity) database from raw ICNARC XML. In doing so, it creates an extremely
+spartan instance of OMOP. This behaviour is intentional to short cut the
+creation of an OMOP database, which can be a daunting process. After the OMOP
+database has been created, you have the option to add more data directly from
+additional ICNARC XML in the future, or begin to populate the database
+directly with data from another source.
 }

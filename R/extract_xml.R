@@ -119,7 +119,6 @@ extract_xml <- function(xml_path) {
 #' @param lookup a lookup table with conversion functions
 #'
 #' @return a vector of the datatype specified in lookup
-#' @export
 transform_data_type <- function(input_data, input_name, lookup) {
 
   conversion_function <-

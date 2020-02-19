@@ -1,5 +1,6 @@
 # STANDARDISED METADATA ====
 
+#' @importFrom dplyr mutate
 #' @importFrom readr read_file
 setup_cdm_source <- function(
   inmem_cdm,
@@ -27,9 +28,10 @@ setup_cdm_source <- function(
 
 }
 
+#' @importFrom rlang inform
 setup_metadata <- function(inmem_cdm) {
 
-  rlang::inform("Metadata table is currently not filled")
+  inform("Metadata table is currently not filled")
   return(inmem_cdm[["metadata"]])
 
 }
@@ -37,6 +39,8 @@ setup_metadata <- function(inmem_cdm) {
 
 # STANDARDISED HEALTH SYSTEM ====
 
+#' @importFrom dplyr mutate select filter distinct rename add_row n
+#' @importFrom rlang .data !!!
 setup_location <- function(inmem_cdm, input_data, nhs_trust) {
 
   loc <- input_data %>%
@@ -55,7 +59,7 @@ setup_location <- function(inmem_cdm, input_data, nhs_trust) {
       longitude = as.double(NA)
     ) %>%
     mutate(location_source_value = .data[["zip"]]) %>%
-    add_row(location_source_value = .data[["nhs_trust"]])
+    add_row(location_source_value = nhs_trust)
 
   site_codes <- input_data %>%
     distinct(.data[["icnno"]]) %>%
@@ -67,7 +71,9 @@ setup_location <- function(inmem_cdm, input_data, nhs_trust) {
 
 }
 
-#' @importFrom dplyr arrange lead ungroup
+#' @importFrom dplyr mutate select filter distinct rename add_row n arrange
+#'   left_join group_by ungroup lead
+#' @importFrom rlang .data !!!
 setup_location_history <- function(inmem_cdm, input_data) {
 
   ot <- inmem_cdm[["observation_period"]] %>%
@@ -127,14 +133,27 @@ setup_location_history <- function(inmem_cdm, input_data) {
 }
 
 
-#' @importFrom dplyr rename add_row
+#' @importFrom dplyr distinct rename add_row mutate select left_join
+#' @importFrom rlang !!! .data
 setup_care_site <- function(inmem_cdm, input_data, nhs_trust) {
 
-  input_data %>%
+  # Enter the trust
+  trust <- tibble(care_site_source_value = nhs_trust)
+
+  # Enter the ICUs
+  sites <- input_data %>%
     distinct(.data[["icnno"]]) %>%
-    rename(care_site_source_value = .data[["icnno"]]) %>%
-    add_row(care_site_source_value = nhs_trust) %>%
-    bind_rows(inmem_cdm[["care_site"]]) %>%
+    rename(care_site_source_value = .data[["icnno"]])
+
+  # Shape into correct format
+  bind_rows(trust, sites) %>%
+    left_join(inmem_cdm[["location"]] %>%
+                  select(.data[["location_id"]],
+                         .data[["location_source_value"]]),
+      by = c("care_site_source_value" = "location_source_value")) %>%
+  bind_rows(inmem_cdm[["care_site"]] %>%
+              # Corrects for a bug with int64
+              select(-.data[["location_id"]])) %>%
     mutate(
       care_site_id = 1:n(),
       place_of_service_concept_id = 0L
@@ -143,17 +162,45 @@ setup_care_site <- function(inmem_cdm, input_data, nhs_trust) {
 
 }
 
+#' @importFrom rlang inform
 setup_provider <- function(inmem_cdm) {
 
-  rlang::inform("Providor table is currently not filled")
+  inform("Providor table is currently not filled")
   return(inmem_cdm[["provider"]])
 
 }
 
 # STANDARDISED CLINICAL DATA ====
 
-#' @importFrom lubridate year month day
-setup_person <- function(inmem_cdm, input_data) {
+#' Setup Person Table
+#'
+#' @param inmem_cdm
+#' @param input_data
+#' @param project_path
+#'
+#' @importFrom lubridate year month day seconds
+#' @importFrom dplyr group_by arrange summarise mutate case_when filter_at vars
+#'   any_vars if_else left_join
+#' @importFrom rlang !!! .data
+#' @importFrom readr write_csv
+setup_person <- function(inmem_cdm, input_data, project_path) {
+
+  error_key <- input_data %>%
+    group_by(.data[["key"]]) %>%
+    arrange(.data[["adno"]]) %>%
+    summarise(
+      sex = length(unique(
+        .data[["sex"]], na.rm = TRUE)),
+      dob = length(unique(
+        .data[["dob"]], na.rm = TRUE)),
+      dod = length(unique(.data[["dod"]], na.rm = TRUE)),
+      tod = length(unique(.data[["tod"]], na.rm = TRUE))
+    ) %>%
+    filter_at(vars(sex:tod), any_vars(. > 1))
+
+  if (nrow(error_key) != 0) {
+  write_csv(error_key, path = file.path(project_path, "errors/person_errors.csv"))
+  }
 
   input_data %>%
     group_by(.data[["key"]]) %>%
@@ -161,18 +208,18 @@ setup_person <- function(inmem_cdm, input_data) {
     summarise(
       person_id = unique(
         .data[["person_id"]], na.rm = TRUE),
-      sex = unique(
-        .data[["sex"]], na.rm = TRUE),
-      dob = unique(
-        .data[["dob"]], na.rm = TRUE),
+      sex = select_last(.data[["sex"]]),
+      dob = select_last(.data[["dob"]]),
       dod = select_max(.data[["dod"]]),
       tod = select_max(.data[["tod"]]),
+      ddbsd = select_max(.data[["ddbsd"]]),
+      tdbsd = select_max(.data[["tdbsd"]]),
       pcode = select_last(.data[["pcode"]]),
       ethnic = select_mode(.data[["ethnic"]])
     ) %>%
     mutate(
       gender_concept_id = if_else(
-        .data[["sex"]] == "F", 8532L, 8507L, missing = as.integer(NA)
+        .data[["sex"]] == "F", 8532L, 8507L, 0L
       ),
       year_of_birth = as.integer(year(.data[["dob"]])),
       month_of_birth = as.integer(month(.data[["dob"]])),
@@ -185,17 +232,24 @@ setup_person <- function(inmem_cdm, input_data) {
         !is.na(.data[["dod"]]) &
           is.na(.data[["tod"]]) ~
           as.POSIXct(.data[["dod"]]),
+        !is.na(.data[["ddbsd"]]) &
+          !is.na(.data[["tdbsd"]]) ~
+          as.POSIXct(.data[["ddbsd"]] + seconds(.data[["tdbsd"]])),
         TRUE ~ as.POSIXct(NA)
       ),
       race_concept_id = 0L,
       ethnicity_concept_id = 0L,
-      location_source_value = .data[["pcode"]], # This is going to get swapped out
-      provider_id = 0L,
-      care_site_id = 0L,
+      location_source_value = .data[["pcode"]],
+      # Providor is left as NA, these carry no meaning for us.
+      provider_id = as.integer(NA),
+      # Care site is hard coded to be 1L at this point.
+      # This is synonymous with the Trust. Regardless of specific
+      # site, which will be referenced in the visit_detail.
+      care_site_id = 1L,
       person_source_value = .data[["key"]],
       gender_source_value = .data[["sex"]],
       gender_source_concept_id = if_else(
-        .data[["sex"]] == "F", 8532L, 8507L, missing = as.integer(NA)
+        .data[["sex"]] == "F", 8532L, 8507L, missing = 0L
       ),
       race_source_value = .data[["ethnic"]],
       race_source_concept_id = case_when(
@@ -215,7 +269,8 @@ setup_person <- function(inmem_cdm, input_data) {
         .data[["ethnic"]] == "P" ~ 46285837L,
         .data[["ethnic"]] == "R" ~ 46285834L,
         .data[["ethnic"]] == "S" ~ 46285839L,
-        .data[["ethnic"]] == "Z" ~ 0L
+        .data[["ethnic"]] == "Z" ~ 0L,
+        TRUE ~ 0L
       ),
       ethnicity_source_value = as.character(NA),
       ethnicity_source_concept_id = 0L
@@ -229,6 +284,16 @@ setup_person <- function(inmem_cdm, input_data) {
 }
 
 
+#' Setup Observation Period Table
+#'
+#' The observation period spans from the beggining of the study period (i.e. 1st
+#' Jan 2014) to either today, or 60 days post death.
+#'
+#' @param inmem_cdm
+#'
+#' @importFrom lubridate as_date days
+#' @importFrom dplyr select mutate if_else
+#' @importFrom rlang !!! .data
 setup_observation_period <- function(inmem_cdm) {
 
   inmem_cdm[["person"]] %>%
@@ -238,13 +303,16 @@ setup_observation_period <- function(inmem_cdm) {
       observation_period_start_date = as_date("2014-01-01"),
       observation_period_end_date = if_else(
         !is.na(.data[["death_datetime"]]),
-        as_date(.data[["death_datetime"]]) + months(6), Sys.Date()
+        as_date(.data[["death_datetime"]]) + days(60), Sys.Date()
       ),
-      period_type_concept_id = 44814724) %>%
+      period_type_concept_id = 44814724L) %>%
     select(!!!names(inmem_cdm[["observation_period"]]))
 
 }
 
+#' @importFrom dplyr select filter arrange distinct mutate case_when if_else
+#'   group_by left_join lag
+#' @importFrom rlang !!! .data
 setup_visit_occurrence <- function(inmem_cdm, input_data, nhs_trust) {
 
   vo <- input_data %>%
@@ -259,6 +327,10 @@ setup_visit_occurrence <- function(inmem_cdm, input_data, nhs_trust) {
       .data[["ddh"]],
       .data[["dod"]],
       .data[["tod"]],
+      .data[["ddbsd"]],
+      .data[["tdbsd"]],
+      .data[["dbricu"]],
+      .data[["tbricu"]],
       .data[["icnno"]],
       .data[["resa"]],
       .data[["ploca"]],
@@ -279,36 +351,40 @@ setup_visit_occurrence <- function(inmem_cdm, input_data, nhs_trust) {
       visit_end_date = case_when(
         !is.na(.data[["ddh"]]) ~ .data[["ddh"]],
         !is.na(.data[["dod"]]) ~ .data[["dod"]],
+        !is.na(.data[["dbricu"]]) ~ .data[["dbricu"]],
+        !is.na(.data[["ddbsd"]]) ~ .data[["ddbsd"]],
         !is.na(.data[["ddicu"]]) ~ .data[["ddicu"]]
       ),
       visit_end_datetime = as.POSIXct(
         .data[["visit_end_date"]]),
       visit_type_concept_id = 44818518L,
-      provider_id = 0L,
-      care_site_id = nhs_trust,
+      # Providor ID not in use
+      provider_id = as.integer(NA),
+      # Care site ID at hospital admission level always = 1L
+      care_site_id = 1L,
       visit_source_value = as.character(NA),
       visit_source_concept_id = 8717L,
       admitted_from_concept_id = case_when(
-        .data[["resa"]] == "M" ~ 581476L,
+        .data[["resa"]] == "M" ~ 8536L,
         .data[["resa"]] == "U" ~ 8863L,
-        .data[["resa"]] == "H" ~ 38004515L,
-        .data[["resa"]] == "O" ~ 42898160L,
-        .data[["resa"]] == "R" ~ 581475L,
+        .data[["resa"]] == "H" ~ 8717L,
+        .data[["resa"]] == "O" ~ 8844L,
+        .data[["resa"]] == "R" ~ 8940L,
         .data[["resa"]] == "P" ~ 8546L,
         .data[["resa"]] == "N" ~ 8672L,
         is.na(.data[["resa"]]) ~ 0L
       ),
       admitted_from_source_value = .data[["resa"]],
       discharge_to_concept_id = case_when(
-        .data[["resa"]] == "M" ~ 581476L,
-        .data[["resa"]] == "U" ~ 8863L,
-        .data[["resa"]] == "S" ~ 8920L,
-        .data[["resa"]] == "L" ~ 8920L,
-        .data[["resa"]] == "H" ~ 38004515L,
-        .data[["resa"]] == "O" ~ 42898160L,
-        .data[["resa"]] == "R" ~ 581475L,
-        .data[["resa"]] == "P" ~ 8546L,
-        .data[["resa"]] == "N" ~ 8672L,
+        .data[["resd"]] == "M" ~ 8536L,
+        .data[["resd"]] == "U" ~ 8863L,
+        .data[["resd"]] == "S" ~ 8920L,
+        .data[["resd"]] == "L" ~ 8920L,
+        .data[["resd"]] == "H" ~ 8717L,
+        .data[["resd"]] == "O" ~ 8844L,
+        .data[["resd"]] == "R" ~ 8940L,
+        .data[["resd"]] == "P" ~ 8546L,
+        .data[["resd"]] == "N" ~ 8672L,
         is.na(.data[["resd"]]) ~ 0L
       ),
       discharge_to_source_value = .data[["resd"]]
@@ -320,26 +396,26 @@ setup_visit_occurrence <- function(inmem_cdm, input_data, nhs_trust) {
       .data[["visit_start_datetime"]]) %>%
     group_by(
       .data[["person_id"]]) %>%
-    mutate(preceding_visit_occurrence_id = lag(
+    mutate(preceding_visit_occurrence_id = dplyr::lag(
       .data[["visit_occurrence_id"]], 1)) %>%
     select(!!!names(inmem_cdm[["visit_occurrence"]]))
 
+  # Care site for everyone at the occurence level is trust
   cs <- inmem_cdm[["care_site"]] %>%
     filter(.data[["care_site_source_value"]] == nhs_trust) %>%
     select(.data[["care_site_id"]],
            .data[["care_site_source_value"]])
 
   vo %>%
-    rename(site_code = .data[["care_site_id"]]) %>%
-    left_join(
-      cs, by = c("site_code" = "care_site_source_value")
-    ) %>%
+    left_join(cs, by = "care_site_id") %>%
     select(!!!names(inmem_cdm[["visit_occurrence"]]))
 
 }
 
 #' @importFrom lubridate seconds
-#' @importFrom dplyr lag
+#' @importFrom dplyr select filter arrange distinct mutate case_when if_else
+#'   group_by left_join lag n
+#' @importFrom rlang !!! .data
 setup_visit_detail <- function(inmem_cdm, input_data) {
 
   input_data %>%
@@ -354,6 +430,10 @@ setup_visit_detail <- function(inmem_cdm, input_data) {
       .data[["ddh"]],
       .data[["dod"]],
       .data[["tod"]],
+      .data[["ddbsd"]],
+      .data[["tdbsd"]],
+      .data[["dbricu"]],
+      .data[["tbricu"]],
       .data[["icnno"]],
       .data[["resa"]],
       .data[["ploca"]],
@@ -362,26 +442,32 @@ setup_visit_detail <- function(inmem_cdm, input_data) {
     mutate(visit_detail_id = 1:n(),
            visit_detail_concept_id = 32037L,
            visit_detail_type_concept_id = 44818518L,
-           provider_id = as.integer(0)) %>%
+           provider_id = 0L) %>%
     mutate(
       visit_detail_start_date = .data[["daicu"]],
       visit_detail_start_datetime = as.POSIXct(
         .data[["daicu"]] + seconds(.data[["taicu"]])),
       visit_detail_end_date = case_when(
-        !is.na(.data[["daicu"]]) ~ .data[["daicu"]],
-        !is.na(.data[["dod"]]) ~ .data[["dod"]]
+        .data[["dis"]] == "A" ~ .data[["daicu"]],
+        .data[["dis"]] == "D" &
+          !is.na(.data[["dod"]]) ~ .data[["dod"]],
+        .data[["dis"]] == "D" &
+          !is.na(.data[["dbricu"]]) ~ .data[["dbricu"]],
+        .data[["dis"]] == "D" &
+          !is.na(.data[["ddbsd"]]) ~ .data[["ddbsd"]],
       ),
       visit_detail_end_datetime = case_when(
-        !is.na(.data[["ddicu"]]) & !is.na(.data[["tdicu"]]) ~
+        .data[["dis"]] == "A" ~
           as.POSIXct(.data[["ddicu"]] + seconds(.data[["tdicu"]])),
-        !is.na(.data[["ddicu"]]) & is.na(.data[["tdicu"]]) ~
-          as.POSIXct(.data[["ddicu"]]),
-        is.na(.data[["ddicu"]]) &
-          !is.na(.data[["dod"]]) &
-          !is.na(.data[["tod"]]) ~ as.POSIXct(
-            .data[["dod"]] + seconds(.data[["tod"]])),
-        is.na(.data[["ddicu"]]) & !is.na(.data[["dod"]]) &
-          is.na(.data[["tod"]]) ~ as.POSIXct(.data[["dod"]]))) %>%
+        .data[["dis"]] == "D" &
+          !is.na(.data[["dod"]]) ~
+          as.POSIXct(.data[["dod"]] + seconds(.data[["tod"]])),
+        .data[["dis"]] == "D" &
+          !is.na(.data[["dbricu"]]) ~
+          as.POSIXct(.data[["dbricu"]] + seconds(.data[["tbricu"]])),
+        .data[["dis"]] == "D" &
+          !is.na(.data[["ddbsd"]]) ~
+          as.POSIXct(.data[["ddbsd"]] + seconds(.data[["tdbsd"]])))) %>%
     left_join(
       inmem_cdm[["care_site"]] %>%
         select(
@@ -390,29 +476,29 @@ setup_visit_detail <- function(inmem_cdm, input_data) {
     ) %>%
     mutate(
       visit_detail_source_value = as.character(NA),
-      visit_detail_source_concept_id = as.integer(0),
+      visit_detail_source_concept_id = 0L,
       admitted_from_concept_id = case_when(
-        .data[["resa"]] == "M" ~ 581476L,
+        .data[["resa"]] == "M" ~ 8536L,
         .data[["resa"]] == "U" ~ 8863L,
-        .data[["resa"]] == "H" ~ 38004515L,
-        .data[["resa"]] == "O" ~ 42898160L,
-        .data[["resa"]] == "R" ~ 581475L,
+        .data[["resa"]] == "H" ~ 8717L,
+        .data[["resa"]] == "O" ~ 8844L,
+        .data[["resa"]] == "R" ~ 8940L,
         .data[["resa"]] == "P" ~ 8546L,
         .data[["resa"]] == "N" ~ 8672L,
         is.na(.data[["resa"]]) ~ 0L
       ),
       admitted_from_source_value = .data[["resa"]],
       discharge_to_concept_id = case_when(
-        .data[["resa"]] == "M" ~ 581476L,
-        .data[["resa"]] == "U" ~ 8863L,
-        .data[["resa"]] == "S" ~ 8920L,
-        .data[["resa"]] == "L" ~ 8920L,
-        .data[["resa"]] == "H" ~ 38004515L,
-        .data[["resa"]] == "O" ~ 42898160L,
-        .data[["resa"]] == "R" ~ 581475L,
-        .data[["resa"]] == "P" ~ 8546L,
-        .data[["resa"]] == "N" ~ 8672L,
-        is.na(resd) ~ 0L
+        .data[["resd"]] == "M" ~ 8536L,
+        .data[["resd"]] == "U" ~ 8863L,
+        .data[["resd"]] == "S" ~ 8920L,
+        .data[["resd"]] == "L" ~ 8920L,
+        .data[["resd"]] == "H" ~ 8717L,
+        .data[["resd"]] == "O" ~ 8844L,
+        .data[["resd"]] == "R" ~ 8940L,
+        .data[["resd"]] == "P" ~ 8546L,
+        .data[["resd"]] == "N" ~ 8672L,
+        is.na(.data[["resd"]]) ~ 0L
       ),
       discharge_to_source_value = .data[["resd"]]
     ) %>%
@@ -502,15 +588,16 @@ setup_specimen <- function(inmem_cdm) {
 }
 
 
-#' @importFrom dplyr pull as_tibble
+#' @importFrom dplyr filter select mutate pull as_tibble bind_rows
+#' @importFrom rlang !!! .data
 setup_fact_relationship <- function(inmem_cdm, nhs_trust) {
 
-  trust <- inmem_cdm[["care_site_table"]] %>%
+  trust <- inmem_cdm[["care_site"]] %>%
     filter(.data[["care_site_source_value"]] == nhs_trust) %>%
     select(.data[["care_site_id"]]) %>%
     pull()
 
-  sites <- inmem_cdm[["care_site_table"]] %>%
+  sites <- inmem_cdm[["care_site"]] %>%
     filter(.data[["care_site_source_value"]] != nhs_trust) %>%
     select(.data[["care_site_id"]]) %>%
     pull()

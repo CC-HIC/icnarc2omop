@@ -8,7 +8,8 @@ extract_vocab(vocabulary_path)
 }
 \arguments{
 \item{vocabulary_path}{character string containing the path to the folder
-containing OMOP vocabularies as CSV.}
+containing OMOP vocabularies as CSV.
+removes them before attemping to write to the database}
 }
 \value{
 a list of tables containing the vocabularies
