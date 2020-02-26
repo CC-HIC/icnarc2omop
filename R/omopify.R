@@ -69,6 +69,7 @@ omopify_xml <- function(project_path,
                         host_name = "localhost",
                         port_no = 5432,
                         username = NULL,
+                        build_in_memory = FALSE,
                         from_empty = TRUE,
                         vocabulary = TRUE,
                         indexes = TRUE,
@@ -80,6 +81,8 @@ omopify_xml <- function(project_path,
   if (!(any(c("5.3.1", "6.0.0") == cdm_version))) {
     abort(glue("{cdm_version} is not a valid choice"))
   }
+
+  if (!build_in_memory) {
 
   # Check db engine is valid
   database_engine <- tolower(database_engine)
@@ -96,6 +99,8 @@ omopify_xml <- function(project_path,
     )
   }
 
+  }
+
   # Check initial project folder structure
   project_dirs <- list.dirs(project_path, full.names = FALSE)
   if (!all(c("meta", "xml", "vocab") %in% project_dirs)) {
@@ -107,6 +112,8 @@ omopify_xml <- function(project_path,
   if (!dir.exists(file.path(project_path, "errors"))) {
     dir.create(file.path(project_path, "errors"))
   }
+
+  if (!build_in_memory) {
 
   inform("Attempting to connect to database")
 
@@ -215,6 +222,12 @@ omopify_xml <- function(project_path,
     .x = table_names,
     .f = ~ collect(tbl(ctn, .x))) %>%
     set_names(table_names)
+
+  } else {
+
+  my_cdm <- cdm
+
+  }
 
   attr(my_cdm, "version") <- cdm_version
 

@@ -103,7 +103,7 @@ extract_xml <- function(xml_path) {
     mutate(person_id = 1:n())
 
   df <- left_join(df, key_id, by = "key")
-
+  df <- distinct(df)
   return(df)
 }
 

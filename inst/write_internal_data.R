@@ -29,5 +29,6 @@ data_spec <- tibble::tribble(
   "RESD", as.character,
 )
 
-#load("./inst/all_tables.RData")
-usethis::use_data(data_spec, internal = TRUE, overwrite = TRUE)
+load("./inst/cdm_tables.RData")
+
+usethis::use_data(cdm, data_spec, internal = TRUE, overwrite = TRUE)
